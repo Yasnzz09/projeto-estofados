@@ -1,0 +1,13 @@
+# Configuração de publicação no Netlify (lida automaticamente a cada atualização no GitHub).
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Modelos 3D: guardar em cache por 1 dia para abrir mais rápido no celular.
+[[headers]]
+  for = "/modelos/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
