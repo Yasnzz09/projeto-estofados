@@ -1,0 +1,105 @@
+[
+  {
+    "id": "sofa-lisboa",
+    "nome": "Sofá Retrátil Lisboa 3 Lugares",
+    "categoria": "Sofás",
+    "descricao": "Sofá retrátil e reclinável em linho bege, com assento de espuma D33 e encosto com almofadas soltas. Pés em madeira maciça.",
+    "preco": 3299.9,
+    "medidas": { "largura": 210, "altura": 95, "profundidade": 100 },
+    "fotos": ["/fotos/sofa-lisboa-1.svg", "/fotos/sofa-lisboa-2.svg"],
+    "modeloGlb": "/modelos/sofa-lisboa.glb",
+    "modeloUsdz": "",
+    "acabamentos": [
+      { "id": "linho-areia", "nome": "Linho Areia", "tipo": "Linho", "corHex": "#cbb79a" },
+      { "id": "linho-cinza", "nome": "Linho Cinza", "tipo": "Linho", "corHex": "#9b9893" },
+      { "id": "linho-off-white", "nome": "Linho Off-white", "tipo": "Linho", "corHex": "#e6dfd2" },
+      { "id": "veludo-verde-musgo", "nome": "Veludo Verde Musgo", "tipo": "Veludo", "corHex": "#4e5a36", "precoAdicional": 450 },
+      { "id": "veludo-azul-petroleo", "nome": "Veludo Azul Petróleo", "tipo": "Veludo", "corHex": "#1f4f5c", "precoAdicional": 450 },
+      { "id": "suede-caramelo", "nome": "Suede Caramelo", "tipo": "Suede", "corHex": "#a8743f", "precoAdicional": 290 },
+      { "id": "suede-grafite", "nome": "Suede Grafite", "tipo": "Suede", "corHex": "#4a4745", "precoAdicional": 290 },
+      { "id": "couro-conhaque", "nome": "Couro Conhaque", "tipo": "Couro", "corHex": "#7b3f1d", "precoAdicional": 1200 }
+    ]
+  },
+  {
+    "id": "sofa-oslo",
+    "nome": "Sofá Oslo 2 Lugares",
+    "categoria": "Sofás",
+    "descricao": "Sofá compacto em tecido cinza, ideal para salas e apartamentos pequenos. Estrutura em eucalipto e pés pretos.",
+    "preco": 1899.9,
+    "medidas": { "largura": 156, "altura": 84, "profundidade": 88 },
+    "fotos": ["/fotos/sofa-oslo-1.svg", "/fotos/sofa-oslo-2.svg"],
+    "modeloGlb": "/modelos/sofa-oslo.glb",
+    "modeloUsdz": "",
+    "acabamentos": [
+      { "id": "linho-cinza", "nome": "Linho Cinza", "tipo": "Linho", "corHex": "#9b9893" },
+      { "id": "linho-areia", "nome": "Linho Areia", "tipo": "Linho", "corHex": "#cbb79a" },
+      { "id": "veludo-verde-musgo", "nome": "Veludo Verde Musgo", "tipo": "Veludo", "corHex": "#4e5a36", "precoAdicional": 350 },
+      { "id": "veludo-azul-petroleo", "nome": "Veludo Azul Petróleo", "tipo": "Veludo", "corHex": "#1f4f5c", "precoAdicional": 350 },
+      { "id": "veludo-rose", "nome": "Veludo Rosé", "tipo": "Veludo", "corHex": "#c99a92", "precoAdicional": 350 },
+      { "id": "suede-caramelo", "nome": "Suede Caramelo", "tipo": "Suede", "corHex": "#a8743f", "precoAdicional": 220 },
+      { "id": "couro-preto", "nome": "Couro Preto", "tipo": "Couro", "corHex": "#262322", "precoAdicional": 900 }
+    ]
+  },
+  {
+    "id": "poltrona-aurora",
+    "nome": "Poltrona Bergère Aurora",
+    "categoria": "Poltronas",
+    "descricao": "Poltrona de encosto alto em veludo terracota, confortável para leitura. Pés em madeira com acabamento nozes.",
+    "preco": 1290,
+    "medidas": { "largura": 80, "altura": 102, "profundidade": 84 },
+    "fotos": ["/fotos/poltrona-aurora-1.svg", "/fotos/poltrona-aurora-2.svg"],
+    "modeloGlb": "/modelos/poltrona-aurora.glb",
+    "modeloUsdz": "",
+    "acabamentos": [
+      { "id": "veludo-terracota", "nome": "Veludo Terracota", "tipo": "Veludo", "corHex": "#b5714f" },
+      { "id": "veludo-verde-musgo", "nome": "Veludo Verde Musgo", "tipo": "Veludo", "corHex": "#4e5a36" },
+      { "id": "veludo-azul-petroleo", "nome": "Veludo Azul Petróleo", "tipo": "Veludo", "corHex": "#1f4f5c" },
+      { "id": "linho-areia", "nome": "Linho Areia", "tipo": "Linho", "corHex": "#cbb79a" },
+      { "id": "suede-caramelo", "nome": "Suede Caramelo", "tipo": "Suede", "corHex": "#a8743f" },
+      { "id": "couro-conhaque", "nome": "Couro Conhaque", "tipo": "Couro", "corHex": "#7b3f1d", "precoAdicional": 480 },
+      { "id": "couro-preto", "nome": "Couro Preto", "tipo": "Couro", "corHex": "#262322", "precoAdicional": 480 }
+    ]
+  },
+  {
+    "id": "poltrona-lina",
+    "nome": "Poltrona Decorativa Lina",
+    "categoria": "Poltronas",
+    "descricao": "Poltrona decorativa em linho verde-oliva, com linhas retas e pés pretos. Ótima para compor cantos de sala e quartos.",
+    "preco": 749.9,
+    "medidas": { "largura": 68, "altura": 78, "profundidade": 72 },
+    "fotos": ["/fotos/poltrona-lina-1.svg", "/fotos/poltrona-lina-2.svg"],
+    "modeloGlb": "/modelos/poltrona-lina.glb",
+    "modeloUsdz": "",
+    "acabamentos": [
+      { "id": "linho-oliva", "nome": "Linho Oliva", "tipo": "Linho", "corHex": "#7d8463" },
+      { "id": "linho-areia", "nome": "Linho Areia", "tipo": "Linho", "corHex": "#cbb79a" },
+      { "id": "linho-off-white", "nome": "Linho Off-white", "tipo": "Linho", "corHex": "#e6dfd2" },
+      { "id": "veludo-rose", "nome": "Veludo Rosé", "tipo": "Veludo", "corHex": "#c99a92", "precoAdicional": 150 },
+      { "id": "veludo-azul-petroleo", "nome": "Veludo Azul Petróleo", "tipo": "Veludo", "corHex": "#1f4f5c", "precoAdicional": 150 },
+      { "id": "suede-caramelo", "nome": "Suede Caramelo", "tipo": "Suede", "corHex": "#a8743f", "precoAdicional": 90 },
+      { "id": "couro-conhaque", "nome": "Couro Conhaque", "tipo": "Couro", "corHex": "#7b3f1d", "precoAdicional": 390 }
+    ]
+  },
+  {
+    "id": "geladeira-duplex",
+    "nome": "Geladeira Frost Free Duplex 410 L Inox",
+    "categoria": "Geladeiras",
+    "descricao": "Geladeira duplex frost free com acabamento inox, freezer superior, prateleiras de vidro temperado e selo Procel A.",
+    "preco": 3899,
+    "medidas": { "largura": 70, "altura": 186, "profundidade": 73 },
+    "fotos": ["/fotos/geladeira-duplex-1.svg", "/fotos/geladeira-duplex-2.svg"],
+    "modeloGlb": "/modelos/geladeira-duplex.glb",
+    "modeloUsdz": ""
+  },
+  {
+    "id": "fogao-5-bocas",
+    "nome": "Fogão 5 Bocas Mesa de Vidro Inox",
+    "categoria": "Fogões",
+    "descricao": "Fogão de piso com mesa de vidro temperado, 5 queimadores com tripla chama central, acendimento automático e forno de 90 L.",
+    "preco": 1599,
+    "medidas": { "largura": 77, "altura": 92, "profundidade": 66 },
+    "fotos": ["/fotos/fogao-5-bocas-1.svg", "/fotos/fogao-5-bocas-2.svg"],
+    "modeloGlb": "/modelos/fogao-5-bocas.glb",
+    "modeloUsdz": ""
+  }
+]

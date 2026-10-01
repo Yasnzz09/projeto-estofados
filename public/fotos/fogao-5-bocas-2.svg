@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="800" height="600">
+<rect width="400" height="300" fill="#e9dfd0"/>
+<g transform="translate(200 160) scale(1.45) translate(-200 -160)">
+<ellipse cx="200" cy="250" rx="100" ry="8" fill="#000" opacity=".08"/>
+<rect x="122" y="70" width="156" height="12" rx="2" fill="#1d1d1f"/>
+<rect x="132" y="62" width="40" height="8" rx="2" fill="#2a2a2a"/>
+<rect x="180" y="62" width="40" height="8" rx="2" fill="#2a2a2a"/>
+<rect x="228" y="62" width="40" height="8" rx="2" fill="#2a2a2a"/>
+<rect x="122" y="82" width="156" height="160" rx="4" fill="#c9ccce"/>
+<circle cx="142" cy="98" r="6" fill="#2a2a2a"/><circle cx="171" cy="98" r="6" fill="#2a2a2a"/>
+<circle cx="200" cy="98" r="6" fill="#2a2a2a"/><circle cx="229" cy="98" r="6" fill="#2a2a2a"/>
+<circle cx="258" cy="98" r="6" fill="#2a2a2a"/>
+<rect x="138" y="114" width="124" height="6" rx="3" fill="#a5a7a9"/>
+<rect x="136" y="128" width="128" height="96" rx="6" fill="#1d1d1f"/>
+<rect x="148" y="140" width="104" height="72" rx="4" fill="#3b3b3f"/>
+</g>
+</svg>

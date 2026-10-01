@@ -1,0 +1,32 @@
+{
+  "name": "loja-moveis-3d",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "modelos": "powershell -ExecutionPolicy Bypass -File scripts/gerar-placeholders.ps1"
+  },
+  "dependencies": {
+    "@google/model-viewer": "^4.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0",
+    "three": "^0.183.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@types/three": "^0.183.1",
+    "@vitejs/plugin-react": "^4.5.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  },
+  "overrides": {
+    "rollup": "npm:@rollup/wasm-node"
+  }
+}
