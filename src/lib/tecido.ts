@@ -2,6 +2,7 @@ import type { TipoTecido } from '../types';
 
 /** Rugosidade por tipo: veludo bem macio, couro com leve brilho, linho e suede foscos. */
 export const RUGOSIDADE: Record<TipoTecido, number> = {
+  Bouclé: 1,
   Linho: 0.92,
   Veludo: 1,
   Suede: 0.88,
@@ -48,6 +49,13 @@ function ruidoSuave(x: number, y: number, celulas: number, semente: number) {
 
 function brilho(tipo: TipoTecido, x: number, y: number): number {
   switch (tipo) {
+    case 'Bouclé': {
+      // fios em laçadas: "bolinhas" irregulares bem marcadas sobre um fundo macio
+      const lacada = ruidoSuave(x, y, 64, 23);
+      const miuda = ruidoSuave(x, y, 128, 29);
+      const relevo = lacada > 0.5 ? 1 : 0.86 + 0.28 * lacada;
+      return (0.8 + 0.12 * miuda + 0.06 * ruidoSuave(x, y, 8, 31)) * relevo;
+    }
     case 'Linho': {
       // fios horizontais e verticais com espessura irregular (slub) + trançado
       const fio = 4;

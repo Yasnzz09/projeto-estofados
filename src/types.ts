@@ -1,7 +1,7 @@
 export const CATEGORIAS = ['Sofás', 'Poltronas', 'Geladeiras', 'Fogões'] as const;
 export type Categoria = (typeof CATEGORIAS)[number];
 
-export const TIPOS_TECIDO = ['Linho', 'Veludo', 'Suede', 'Couro'] as const;
+export const TIPOS_TECIDO = ['Bouclé', 'Linho', 'Veludo', 'Suede', 'Couro'] as const;
 export type TipoTecido = (typeof TIPOS_TECIDO)[number];
 
 /** Tecido + cor de um estofado. */

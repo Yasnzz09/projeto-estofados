@@ -22,7 +22,7 @@ const saida = path.join(raiz, 'public/modelos/acabamentos');
 // Mesma regra e mesmas rugosidades do site (lidas de src/lib/tecido.ts, fonte única).
 const regraTecido = new RegExp(tecidoTs.match(/ehMaterialDeTecido[^/]*\/(.+?)\/i/)[1], 'i');
 const RUGOSIDADE = Object.fromEntries(
-  [...tecidoTs.match(/RUGOSIDADE[^{]*\{([^}]*)\}/)[1].matchAll(/(\w+):\s*([\d.]+)/g)].map(([, k, v]) => [k, +v]),
+  [...tecidoTs.match(/RUGOSIDADE[^{]*\{([^}]*)\}/)[1].matchAll(/([\p{L}\w]+):\s*([\d.]+)/gu)].map(([, k, v]) => [k, +v]),
 );
 
 /** Cor do site (sRGB, "#rrggbb") para o espaço linear usado no glTF. */
