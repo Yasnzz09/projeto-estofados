@@ -88,6 +88,14 @@ export const IconeMira = (p: P) => (
   </Icone>
 );
 
+/** Seta para cima ou para baixo com uma linha de "chão": usada em Subir / Descer. */
+export const IconeAltura = ({ sentido, className }: P & { sentido: 'subir' | 'descer' }) => (
+  <Icone className={className}>
+    {sentido === 'subir' ? <path d="M12 16V4M7 9l5-5 5 5" /> : <path d="M12 4v12M7 11l5 5 5-5" />}
+    <path d="M4 20h16" />
+  </Icone>
+);
+
 export const IconeCamera = (p: P) => (
   <Icone {...p}>
     <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />

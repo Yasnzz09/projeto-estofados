@@ -4,6 +4,7 @@ import { pedirPermissaoSensores } from '../lib/sensores';
 import type { Acabamento, Produto } from '../types';
 import { CenaAR, type CotaTela } from './ar-android/CenaAR';
 import {
+  IconeAltura,
   IconeBaixar,
   IconeCamera,
   IconeCompartilhar,
@@ -23,7 +24,7 @@ import {
  */
 
 const CHAVE_DICA = 'ar-android-dica-vista';
-const { passoCm, passoRotacaoGraus } = config.arAndroid;
+const { passoCm, passoRotacaoGraus, passoAlturaCm } = config.arAndroid;
 
 type EstadoCamera = 'abrindo' | 'ok' | 'negada' | 'erro' | 'sem-https';
 
@@ -345,6 +346,9 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
   const mover = (frente: number, lado: number) => (fator: number) => {
     cenaRef.current?.mover(frente * passo * fator, lado * passo * fator);
   };
+  const mudarAltura = (sentido: number) => (fator: number) => {
+    cenaRef.current?.subir((sentido * passoAlturaCm * fator) / 100);
+  };
   const girar = (sentido: number) => (fator: number) => {
     cenaRef.current?.girar(sentido * passoRotacaoGraus * Math.min(fator, 2));
   };
@@ -499,7 +503,10 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
           .
         </p>
         <div className="flex items-center justify-center gap-2">
-          <BotaoControle rotulo="Girar esq." icone={<IconeGirarEsquerda className="size-6" />} props={segurar(girar(1), 160, 2)} />
+          <div className="flex flex-col gap-1.5">
+            <BotaoControle rotulo="Subir" icone={<IconeAltura sentido="subir" className="size-6" />} props={segurar(mudarAltura(1), 80, 2.5)} />
+            <BotaoControle rotulo="Descer" icone={<IconeAltura sentido="descer" className="size-6" />} props={segurar(mudarAltura(-1), 80, 2.5)} />
+          </div>
           <div className="grid grid-cols-3 gap-1.5">
             <span />
             <BotaoControle rotulo="Afastar" icone={<IconeSeta direcao="cima" className="size-6" />} props={segurar(mover(1, 0), 80, 2.5)} />
@@ -521,7 +528,10 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
             <BotaoControle rotulo="Aproximar" icone={<IconeSeta direcao="baixo" className="size-6" />} props={segurar(mover(-1, 0), 80, 2.5)} />
             <span />
           </div>
-          <BotaoControle rotulo="Girar dir." icone={<IconeGirarDireita className="size-6" />} props={segurar(girar(-1), 160, 2)} />
+          <div className="flex flex-col gap-1.5">
+            <BotaoControle rotulo="Girar esq." icone={<IconeGirarEsquerda className="size-6" />} props={segurar(girar(1), 160, 2)} />
+            <BotaoControle rotulo="Girar dir." icone={<IconeGirarDireita className="size-6" />} props={segurar(girar(-1), 160, 2)} />
+          </div>
         </div>
       </div>
 

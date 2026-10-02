@@ -62,6 +62,9 @@ export interface OpcoesCena {
 const AFASTAMENTO_COTA = 0.04;
 const DISTANCIA_MIN = 0.6;
 const DISTANCIA_MAX = 12;
+/** Limites de altura (m) para Subir / Descer: o suficiente para acertar o chão sem perder o móvel. */
+const ALTURA_MIN = -1;
+const ALTURA_MAX = 1.5;
 /** Inclinação usada quando o celular não tem giroscópio: levemente para baixo, mirando o chão. */
 const INCLINACAO_PADRAO = MathUtils.degToRad(-32);
 
@@ -252,6 +255,13 @@ export class CenaAR {
       p.x = this.camera.position.x + (dx / dist) * limitada;
       p.z = this.camera.position.z + (dz / dist) * limitada;
     }
+    this.sujo = true;
+  }
+
+  /** Sobe ou desce o móvel (em metros). Ajuda a "encostar" o móvel no chão. */
+  subir(metros: number) {
+    const p = this.movel.position;
+    p.y = MathUtils.clamp(p.y + metros, ALTURA_MIN, ALTURA_MAX);
     this.sujo = true;
   }
 

@@ -29,6 +29,8 @@ export const config = {
     passoCm: 5,
     /** Quanto cada toque em ⟲ / ⟳ gira o móvel, em graus. */
     passoRotacaoGraus: 15,
+    /** Quanto cada toque em Subir / Descer muda a altura do móvel, em cm. */
+    passoAlturaCm: 2,
     /** Campo de visão da câmera traseira no lado maior da imagem (típico: 63° a 70°). */
     fovCameraGraus: 66,
   },
