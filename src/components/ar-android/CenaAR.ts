@@ -68,11 +68,13 @@ const DISTANCIA_MAX = 12;
  * - quando o celular se move de verdade, a câmera acompanha até ficar a menos de PARADO;
  * - movimentos lentos são bem suavizados e os rápidos respondem na hora.
  */
-const ZONA_MORTA = MathUtils.degToRad(0.8);
-const PARADO = MathUtils.degToRad(0.1);
-const MOVIMENTO_RAPIDO = MathUtils.degToRad(10);
-const SUAVIDADE_LENTA = 4; // por segundo
-const SUAVIDADE_RAPIDA = 18; // por segundo
+const ZONA_MORTA = MathUtils.degToRad(1.8);
+const PARADO = MathUtils.degToRad(0.15);
+const MOVIMENTO_RAPIDO = MathUtils.degToRad(15);
+const SUAVIDADE_LENTA = 2.5; // por segundo
+const SUAVIDADE_RAPIDA = 10; // por segundo
+/** Filtro nas leituras do sensor (0 a 1): quanto menor, mais suave. */
+const FILTRO_SENSOR = 0.12;
 /** Limites de altura (m) para Subir / Descer: o suficiente para acertar o chão sem perder o móvel. */
 const ALTURA_MIN = -1;
 const ALTURA_MAX = 1.5;
@@ -106,6 +108,7 @@ export class CenaAR {
 
   // DeviceOrientation -> quaternion (mesma matemática do DeviceOrientationControls do three.js)
   private readonly quatAlvo = new Quaternion();
+  private readonly quatBruto = new Quaternion();
   private readonly euler = new Euler();
   private readonly q0 = new Quaternion();
   private readonly q1 = new Quaternion(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
@@ -213,10 +216,13 @@ export class CenaAR {
   definirOrientacao(alpha: number, beta: number, gamma: number, anguloTela: number) {
     const r = MathUtils.degToRad;
     this.euler.set(r(beta), r(alpha), -r(gamma), 'YXZ');
-    this.quatAlvo
+    this.quatBruto
       .setFromEuler(this.euler)
       .multiply(this.q1)
       .multiply(this.q0.setFromAxisAngle(this.eixoZ, -r(anguloTela)));
+    // Média móvel das leituras: tira o tremido antes de mexer a câmera.
+    if (this.temOrientacao) this.quatAlvo.slerp(this.quatBruto, FILTRO_SENSOR);
+    else this.quatAlvo.copy(this.quatBruto);
     if (!this.temOrientacao) {
       this.temOrientacao = true;
       this.camera.quaternion.copy(this.quatAlvo);
