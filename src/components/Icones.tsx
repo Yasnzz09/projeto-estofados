@@ -57,71 +57,10 @@ export const IconeVoltar = (p: P) => (
   </Icone>
 );
 
-export const IconeSeta = ({ direcao, className }: P & { direcao: 'cima' | 'baixo' | 'esquerda' | 'direita' }) => {
-  const giro = { cima: 0, direita: 90, baixo: 180, esquerda: 270 }[direcao];
-  return (
-    <Icone className={className}>
-      <path d="M12 19V5M5 12l7-7 7 7" transform={`rotate(${giro} 12 12)`} />
-    </Icone>
-  );
-};
-
-export const IconeGirarEsquerda = (p: P) => (
-  <Icone {...p}>
-    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-    <path d="M3 3v5h5" />
-  </Icone>
-);
-
-export const IconeGirarDireita = (p: P) => (
-  <Icone {...p}>
-    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-    <path d="M21 3v5h-5" />
-  </Icone>
-);
-
-export const IconeMira = (p: P) => (
-  <Icone {...p}>
-    <circle cx="12" cy="12" r="7" />
-    <circle cx="12" cy="12" r="2" />
-    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-  </Icone>
-);
-
-/** Seta para cima ou para baixo com uma linha de "chão": usada em Subir / Descer. */
-export const IconeAltura = ({ sentido, className }: P & { sentido: 'subir' | 'descer' }) => (
-  <Icone className={className}>
-    {sentido === 'subir' ? <path d="M12 16V4M7 9l5-5 5 5" /> : <path d="M12 4v12M7 11l5 5 5-5" />}
-    <path d="M4 20h16" />
-  </Icone>
-);
-
-/** Celular com ondas de movimento: modo "seguir o celular". */
-export const IconeMovimento = (p: P) => (
-  <Icone {...p}>
-    <rect x="8" y="3" width="8" height="18" rx="2" />
-    <path d="M11 18h2M4.5 8.5a6 6 0 0 0 0 7M19.5 8.5a6 6 0 0 1 0 7" />
-  </Icone>
-);
-
 export const IconeCamera = (p: P) => (
   <Icone {...p}>
     <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
     <circle cx="12" cy="13" r="3" />
-  </Icone>
-);
-
-export const IconeCompartilhar = (p: P) => (
-  <Icone {...p}>
-    <path d="M12 3v12M7 8l5-5 5 5" />
-    <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
-  </Icone>
-);
-
-export const IconeBaixar = (p: P) => (
-  <Icone {...p}>
-    <path d="M12 3v12M7 10l5 5 5-5" />
-    <path d="M5 21h14" />
   </Icone>
 );
 

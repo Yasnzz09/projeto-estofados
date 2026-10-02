@@ -18,20 +18,4 @@ export const config = {
     facebook: 'https://facebook.com/',
     pinterest: 'https://pinterest.com/',
   },
-
-  /** Visualizador com câmera + setas (somente Android). */
-  arAndroid: {
-    /** Altura estimada do celular em relação ao chão, em metros. */
-    alturaCameraM: 1.4,
-    /** Distância em que o móvel aparece (e volta ao "Centralizar"), em metros. */
-    distanciaInicialM: 2,
-    /** Quanto cada toque nas setas move o móvel, em cm. */
-    passoCm: 5,
-    /** Quanto cada toque em ⟲ / ⟳ gira o móvel, em graus. */
-    passoRotacaoGraus: 15,
-    /** Quanto cada toque em Subir / Descer muda a altura do móvel, em cm. */
-    passoAlturaCm: 2,
-    /** Campo de visão da câmera traseira no lado maior da imagem (típico: 63° a 70°). */
-    fovCameraGraus: 66,
-  },
 };

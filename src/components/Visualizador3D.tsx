@@ -1,8 +1,6 @@
 import '@google/model-viewer';
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import { isAndroid } from '../lib/plataforma';
-import { pedirPermissaoSensores } from '../lib/sensores';
 import {
   REPETICAO_TEXTURA_FOTO,
   REPETICAO_TEXTURA_GERADA,
@@ -13,11 +11,6 @@ import {
 import type { ModelViewerElement } from '../model-viewer';
 import type { Acabamento, Produto } from '../types';
 import { IconeCubo, IconeRegua } from './Icones';
-import LimiteErroAR from './ar-android/LimiteErroAR';
-
-// Visualizador com câmera + setas (só Android). Carregado sob demanda, junto com o three.js.
-const ARAndroid = lazy(() => import('./ARAndroid'));
-const HASH_AR_ANDROID = '#ar-android';
 
 /** Distância (m) entre a caixa do modelo e as linhas de cota, para não ficarem "dentro" do móvel. */
 const AFASTAMENTO = 0.04;
@@ -77,10 +70,6 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
   const [mostrarMedidas, setMostrarMedidas] = useState(false);
   const [avisoAR, setAvisoAR] = useState(false);
   const { largura, altura, profundidade } = produto.medidas;
-  const navigate = useNavigate();
-  const location = useLocation();
-  const android = isAndroid();
-  const arAndroidAberto = android && location.hash === HASH_AR_ANDROID;
 
   useEffect(() => {
     const mv = mvRef.current;
@@ -132,10 +121,11 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
     };
 
     // No AR as linhas 2D não acompanham a câmera; escondemos as medidas.
+    // Se o AR não abrir (celular sem suporte), mostramos o aviso com a tabela de medidas.
     const aoMudarAR = (e: Event) => {
-      if ((e as CustomEvent<{ status: string }>).detail?.status === 'session-started') {
-        setMostrarMedidas(false);
-      }
+      const status = (e as CustomEvent<{ status: string }>).detail?.status;
+      if (status === 'session-started') setMostrarMedidas(false);
+      if (status === 'failed' && isAndroid()) setAvisoAR(true);
     };
 
     mv.addEventListener('load', aoCarregar);
@@ -151,40 +141,12 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
     };
   }, [produto.modeloGlb]);
 
-  // ---------- Android: tela própria com câmera + setas (sem Scene Viewer / ARCore) ----------
-  // A tela fica no histórico (#ar-android), então o botão "voltar" do Android também fecha.
-  const abrirARAndroid = () => {
-    void pedirPermissaoSensores();
-    const raiz = document.documentElement;
-    if (raiz.requestFullscreen) {
-      raiz
-        .requestFullscreen()
-        .then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('portrait'))
-        .catch(() => undefined);
-    }
-    // Mantém ?acabamento=... na URL para a tela da câmera usar o tecido escolhido.
-    navigate({ search: location.search, hash: HASH_AR_ANDROID });
-  };
-
-  const fecharARAndroid = () => {
-    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
-    if (location.key !== 'default') navigate(-1);
-    else navigate({ search: location.search, hash: '' }, { replace: true });
-  };
-
   const irParaTabelaDeMedidas = () => {
-    fecharARAndroid();
-    window.setTimeout(() => {
-      document.getElementById('vai-caber')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 200);
+    document.getElementById('vai-caber')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  // Mesmo fluxo para todos: iPhone abre o Quick Look e Android abre o Scene Viewer (AR do Google).
   const abrirAR = () => {
-    if (isAndroid()) {
-      abrirARAndroid();
-      return;
-    }
-    // iPhone (Quick Look) e demais: fluxo original, sem alterações.
     const mv = mvRef.current;
     if (mv?.canActivateAR) {
       setAvisoAR(false);
@@ -209,14 +171,12 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
           shadow-softness="0.6"
           interaction-prompt="auto"
           ar
-          ar-modes="webxr scene-viewer quick-look"
+          ar-modes="scene-viewer webxr quick-look"
           ar-placement="floor"
           ar-scale="fixed"
           className={mostrarMedidas ? 'com-medidas' : ''}
           style={{ width: '100%', height: '100%' }}
         >
-          {/* No Android o AR é a tela própria; esconde o botão AR padrão do model-viewer (Scene Viewer). */}
-          {android && <span slot="ar-button" hidden />}
           {LINHAS.flat().map((nome) => (
             <div key={nome} slot={nome} className="cota-ponto" data-position="0 0 0" />
           ))}
@@ -273,32 +233,24 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
         </button>
       </div>
 
-      {avisoAR && (
-        <p role="status" className="mt-3 rounded-xl bg-areia-100 p-3 text-sm text-grafite-700">
-          A visualização na sua casa funciona no celular (Android com ARCore ou iPhone).
-          Abra esta página no seu celular e toque em <strong>“Veja na sua casa”</strong> — o móvel
-          aparece no chão, em tamanho real.
-        </p>
-      )}
-
-      {arAndroidAberto && (
-        <LimiteErroAR aoFechar={fecharARAndroid}>
-          <Suspense
-            fallback={
-              <div className="fixed inset-0 z-[100] grid place-items-center bg-black text-sm font-medium text-white">
-                Abrindo a câmera…
-              </div>
-            }
-          >
-            <ARAndroid
-              produto={produto}
-              acabamento={acabamento}
-              aoFechar={fecharARAndroid}
-              aoIrParaTabela={irParaTabelaDeMedidas}
-            />
-          </Suspense>
-        </LimiteErroAR>
-      )}
+      {avisoAR &&
+        (isAndroid() ? (
+          <div role="status" className="mt-3 rounded-xl bg-areia-100 p-3 text-sm text-grafite-700">
+            <p>
+              Seu celular não tem suporte a realidade aumentada. Você ainda pode girar o móvel em 3D e
+              conferir se ele cabe pela tabela de medidas.
+            </p>
+            <button type="button" onClick={irParaTabelaDeMedidas} className="mt-2 font-semibold underline underline-offset-2">
+              Ir para a tabela de medidas
+            </button>
+          </div>
+        ) : (
+          <p role="status" className="mt-3 rounded-xl bg-areia-100 p-3 text-sm text-grafite-700">
+            A visualização na sua casa funciona no celular (Android com ARCore ou iPhone).
+            Abra esta página no seu celular e toque em <strong>“Veja na sua casa”</strong> — o móvel
+            aparece no chão, em tamanho real.
+          </p>
+        ))}
     </div>
   );
 }
