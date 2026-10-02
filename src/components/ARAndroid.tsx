@@ -328,6 +328,32 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
     cenaRef.current?.aplicarAcabamento(acabamento ?? null);
   }, [acabamento]);
 
+  // Luz automática: mede o brilho da câmera a cada segundo e ajusta o móvel ao ambiente.
+  useEffect(() => {
+    if (estadoCamera !== 'ok') return;
+    const amostra = document.createElement('canvas');
+    amostra.width = amostra.height = 16;
+    const ctx = amostra.getContext('2d', { willReadFrequently: true });
+    const medir = () => {
+      const video = videoRef.current;
+      if (!ctx || !video || video.readyState < 2) return;
+      try {
+        ctx.drawImage(video, 0, 0, 16, 16);
+        const px = ctx.getImageData(0, 0, 16, 16).data;
+        let soma = 0;
+        for (let i = 0; i < px.length; i += 4) soma += 0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2];
+        cenaRef.current?.ajustarLuzAmbiente(soma / (px.length / 4) / 255);
+      } catch {
+        // sem acesso aos pixels: mantém a luz padrão
+      }
+    };
+    medir();
+    const t = window.setInterval(medir, 1000);
+    return () => {
+      window.clearInterval(t);
+    };
+  }, [estadoCamera]);
+
   // Esconde a dica sozinha depois de alguns segundos.
   useEffect(() => {
     if (!dica) return;

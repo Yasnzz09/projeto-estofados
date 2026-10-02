@@ -74,6 +74,9 @@ const SUAVIDADE_SEGUIR = 20; // por segundo
 /** Limites de altura (m) para Subir / Descer: o suficiente para acertar o chão sem perder o móvel. */
 const ALTURA_MIN = -1;
 const ALTURA_MAX = 1.5;
+/** Faixa de exposição do ajuste automático de luz. */
+const EXPOSICAO_MIN = 0.55;
+const EXPOSICAO_MAX = 1.3;
 /** Inclinação usada quando o celular não informa o giroscópio: como a maioria segura o celular olhando a sala. */
 const INCLINACAO_PADRAO = MathUtils.degToRad(-10);
 /*
@@ -144,11 +147,11 @@ export class CenaAR {
     this.pmrem = new PMREMGenerator(this.renderer);
     this.ambiente = this.pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     this.scene.environment = this.ambiente;
-    this.scene.environmentIntensity = 0.55;
-
-    this.scene.add(new HemisphereLight(0xffffff, 0x8a7a66, 0.35));
-    const sol = new DirectionalLight(0xffffff, 0.6);
-    sol.position.set(1, 3, 2);
+    // Luz principal vinda de cima e da lateral: dá volume (assento x encosto) ao móvel.
+    this.scene.environmentIntensity = 0.35;
+    this.scene.add(new HemisphereLight(0xffffff, 0x8a7a66, 0.2));
+    const sol = new DirectionalLight(0xffffff, 2);
+    sol.position.set(-1.5, 4, 3);
     this.scene.add(sol);
 
     this.camera.position.set(0, opcoes.alturaCameraM, 0);
@@ -185,8 +188,8 @@ export class CenaAR {
     c.width = c.height = 128;
     const ctx = c.getContext('2d')!;
     const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-    g.addColorStop(0, 'rgba(0,0,0,0.55)');
-    g.addColorStop(0.55, 'rgba(0,0,0,0.3)');
+    g.addColorStop(0, 'rgba(0,0,0,0.7)');
+    g.addColorStop(0.55, 'rgba(0,0,0,0.38)');
     g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 128, 128);
@@ -373,6 +376,19 @@ export class CenaAR {
     this.sujo = true;
   }
 
+  /**
+   * Brilho médio da imagem da câmera (0 = preto, 1 = branco). Ajusta a exposição do móvel
+   * para combinar com o ambiente: em lugar escuro ele não fica "brilhando".
+   */
+  ajustarLuzAmbiente(brilho: number) {
+    const alvo = MathUtils.clamp(0.45 + brilho * 1.2, EXPOSICAO_MIN, EXPOSICAO_MAX);
+    const atual = this.renderer.toneMappingExposure;
+    const nova = MathUtils.lerp(atual, alvo, 0.35);
+    if (Math.abs(nova - atual) < 0.005) return;
+    this.renderer.toneMappingExposure = nova;
+    this.sujo = true;
+  }
+
   girar(graus: number) {
     this.movidoPeloUsuario = true;
     this.movel.rotation.y += MathUtils.degToRad(graus);
@@ -428,11 +444,27 @@ export class CenaAR {
     const [tl, ta, tp] = this.opcoes.textosCotas;
     const cotas: CotaTela[] = [
       { a: this.projetar(-x1, 0, zf), b: this.projetar(x1, 0, zf), rotulo: this.projetar(0, 0, zf), texto: tl },
-      { a: this.projetar(xd, 0, -z1), b: this.projetar(xd, y1, -z1), rotulo: this.projetar(xd, y1 / 2, -z1), texto: ta },
+      this.cotaAltura(xd, y1, z1, ta),
       { a: this.projetar(xd, 0, z1), b: this.projetar(xd, 0, -z1), rotulo: this.projetar(xd, 0, 0), texto: tp },
     ];
     this.ultimasCotas = cotas;
     this.aoAtualizarCotas?.(cotas);
+  }
+
+  /**
+   * Altura no canto de trás ESQUERDO (a profundidade fica na lateral direita, assim as
+   * etiquetas não se amontoam). Se esse canto sair da tela, usa o canto direito.
+   */
+  private cotaAltura(xd: number, y1: number, z1: number, texto: string): CotaTela {
+    const naTela = (p: PontoTela) => p.visivel && p.x >= 0 && p.x <= this.largura && p.y >= 0 && p.y <= this.altura;
+    const noCanto = (lado: number): CotaTela => ({
+      a: this.projetar(lado * xd, 0, -z1),
+      b: this.projetar(lado * xd, y1, -z1),
+      rotulo: this.projetar(lado * xd, y1 / 2, -z1),
+      texto,
+    });
+    const esquerda = noCanto(-1);
+    return naTela(esquerda.rotulo) ? esquerda : noCanto(1);
   }
 
   /** Foto = quadro atual do vídeo (com o mesmo corte da tela) + 3D + cotas visíveis. */
