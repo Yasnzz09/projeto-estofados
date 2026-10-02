@@ -4,3 +4,5 @@ dist
 .DS_Store
 # gerado no build por scripts/gerar-acabamentos.mjs
 public/modelos/acabamentos
+# gerado no build: versão dos modelos 3D
+src/data/versao-modelos.json

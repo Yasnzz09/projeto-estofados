@@ -1,3 +1,4 @@
+import versaoModelos from '../data/versao-modelos.json';
 import { formatarMedidas } from './formatar';
 import type { Acabamento, Produto } from '../types';
 
@@ -27,6 +28,8 @@ export function enderecoComAR(modelo: string, produto: Produto, acabamento?: Aca
   const busca = new URLSearchParams({
     title: produto.nome,
     link: linkOrcamentoDoAR(produto, acabamento),
+    // versão do modelo: arquivo novo = endereço novo (o celular não usa o modelo antigo do cache)
+    v: versaoModelos.versao,
   });
   return `${modelo}?${busca.toString()}${faixaQuickLook(produto, acabamento)}`;
 }

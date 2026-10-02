@@ -10,6 +10,7 @@
 // Só os materiais de tecido mudam (nome com "tecido", "almofada", "assento"...);
 // pés e outras partes ficam como estão. Sem dependências: lê e escreve o GLB "na mão".
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -80,3 +81,14 @@ for (const produto of produtos) {
   }
 }
 console.log(`[acabamentos] ${total} modelos coloridos gerados em public/modelos/acabamentos`);
+
+// Versão dos modelos: muda quando qualquer modelo, tecido ou cor muda. Vai no endereço dos arquivos
+// (?v=...), então celular e AR baixam o modelo novo na hora, mesmo com o cache de 1 dia do Netlify.
+const hash = crypto.createHash('sha1');
+for (const nome of fs.readdirSync(path.join(raiz, 'public/modelos')).filter((n) => n.endsWith('.glb')).sort()) {
+  hash.update(nome).update(fs.readFileSync(path.join(raiz, 'public/modelos', nome)));
+}
+hash.update(JSON.stringify(produtos.map((p) => p.acabamentos ?? []))).update(JSON.stringify(RUGOSIDADE));
+const versao = hash.digest('hex').slice(0, 10);
+fs.writeFileSync(path.join(raiz, 'src/data/versao-modelos.json'), JSON.stringify({ versao }) + '\n');
+console.log(`[acabamentos] versão dos modelos: ${versao}`);
