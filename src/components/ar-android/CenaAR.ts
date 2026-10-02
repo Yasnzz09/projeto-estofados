@@ -76,6 +76,16 @@ const ALTURA_MIN = -1;
 const ALTURA_MAX = 1.5;
 /** Inclinação usada quando o celular não tem giroscópio: levemente para baixo, mirando o chão. */
 const INCLINACAO_PADRAO = MathUtils.degToRad(-32);
+/*
+ * Cena travada: a câmera virtual usa só a inclinação (para cima/baixo) do celular, limitada
+ * a uma faixa olhando para o chão. Assim o móvel nunca aparece "voando" perto do teto.
+ */
+const INCLINACAO_MIN = MathUtils.degToRad(-65);
+const INCLINACAO_MAX = MathUtils.degToRad(-18);
+/** Altura da tela (-1 = base, 1 = topo) onde a base do móvel aparece ao centralizar. */
+const BASE_NA_TELA = -0.35;
+const DISTANCIA_CENTRALIZAR_MIN = 1.2;
+const DISTANCIA_CENTRALIZAR_MAX = 6;
 
 /**
  * Cena three.js do visualizador com câmera (Android).
@@ -112,6 +122,7 @@ export class CenaAR {
   private readonly q1 = new Quaternion(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
   private readonly eixoZ = new Vector3(0, 0, 1);
   private readonly v = new Vector3();
+  private readonly raio = new Vector3();
 
   private acabamento: AcabamentoCena | null = null;
   private texturaTecido: Texture | null = null;
@@ -221,7 +232,7 @@ export class CenaAR {
     if (!this.temOrientacao) {
       this.temOrientacao = true;
       this.quatAlvo.copy(this.quatBruto);
-      this.camera.quaternion.copy(this.quatAlvo);
+      this.ajustarCamera();
       this.calibrandoAte = performance.now() + CALIBRACAO_MS;
       if (!this.posicionado) this.centralizar();
       this.sujo = true;
@@ -233,7 +244,7 @@ export class CenaAR {
     const calibrando = performance.now() < this.calibrandoAte;
     if (calibrando) {
       // Primeiro instante: acerta a inclinação e reposiciona o móvel na frente.
-      this.camera.quaternion.copy(this.quatAlvo);
+      this.ajustarCamera();
       if (!this.movidoPeloUsuario) this.posicionarNaFrente();
       this.sujo = true;
     }
@@ -241,9 +252,10 @@ export class CenaAR {
 
   /** Liga/desliga o modo em que a cena acompanha o giroscópio. */
   set seguirCelular(valor: boolean) {
+    if (valor === this._seguirCelular) return;
     this._seguirCelular = valor;
-    // Ao travar de novo, fixa na inclinação atual e traz o móvel para a frente.
-    if (!valor && this.temOrientacao) this.centralizar();
+    // Ao trocar de modo, recalcula a câmera e traz o móvel para a frente, no chão.
+    if (this.temOrientacao) this.centralizar();
     this.sujo = true;
   }
 
@@ -270,16 +282,46 @@ export class CenaAR {
    * na altura do chão. É também o jeito de "recalibrar" a cena travada.
    */
   centralizar() {
-    if (this.temOrientacao) this.camera.quaternion.copy(this.quatAlvo);
+    this.ajustarCamera();
     this.movel.position.y = 0;
     this.movidoPeloUsuario = false;
     this.posicionarNaFrente();
   }
 
-  /** Coloca o móvel no meio da tela, a `distanciaInicialM`, de frente para a câmera. */
+  /**
+   * Põe a câmera virtual na orientação do modo atual:
+   * - seguindo: exatamente a leitura do sensor;
+   * - travada: só a inclinação, limitada a olhar para o chão (sem giro lateral).
+   */
+  private ajustarCamera() {
+    if (this._seguirCelular && this.temOrientacao) {
+      this.camera.quaternion.copy(this.quatAlvo);
+    } else {
+      let inclinacao = INCLINACAO_PADRAO;
+      if (this.temOrientacao) {
+        const frente = this.v.set(0, 0, -1).applyQuaternion(this.quatAlvo);
+        inclinacao = Math.asin(MathUtils.clamp(frente.y, -1, 1));
+      }
+      inclinacao = MathUtils.clamp(inclinacao, INCLINACAO_MIN, INCLINACAO_MAX);
+      this.camera.quaternion.setFromEuler(this.euler.set(inclinacao, 0, 0, 'YXZ'));
+    }
+    this.camera.updateMatrixWorld();
+    this.sujo = true;
+  }
+
+  /**
+   * Coloca o móvel de frente para a câmera, apoiado no chão e com a base na parte de baixo
+   * da tela (BASE_NA_TELA). Se o celular estiver apontado para cima, usa a distância padrão.
+   */
   private posicionarNaFrente() {
     const frente = this.frenteNoChao();
-    const d = this.opcoes.distanciaInicialM;
+    let d = this.opcoes.distanciaInicialM;
+    this.camera.updateMatrixWorld();
+    const raio = this.raio.set(0, BASE_NA_TELA, 0.5).unproject(this.camera).sub(this.camera.position).normalize();
+    if (raio.y < -0.05) {
+      const t = (this.camera.position.y - this.movel.position.y) / -raio.y;
+      d = MathUtils.clamp(Math.hypot(raio.x * t, raio.z * t), DISTANCIA_CENTRALIZAR_MIN, DISTANCIA_CENTRALIZAR_MAX);
+    }
     this.movel.position.set(this.camera.position.x + frente.x * d, this.movel.position.y, this.camera.position.z + frente.z * d);
     this.movel.rotation.y = Math.atan2(-frente.x, -frente.z);
     this.posicionado = true;
