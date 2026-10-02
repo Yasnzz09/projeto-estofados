@@ -9,7 +9,7 @@
 // (texturas de bouclê e couro de src/lib/tecido.ts, repetidas a cada 25 cm). Para ajustar o modelo,
 // mude as medidas aqui e exporte de novo.
 
-export function construirSofaDublin(THREE, RoundedBoxGeometry, texturas) {
+export function construirSofaDublin(THREE, RoundedBoxGeometry, texturas, mergeVertices) {
   const grupo = new THREE.Group();
   grupo.name = 'Sofa_Dublin';
 
@@ -40,7 +40,8 @@ export function construirSofaDublin(THREE, RoundedBoxGeometry, texturas) {
   }
 
   function caixa(nome, material, [l, a, p], [x, y, z], raio, segmentos = 4) {
-    const geo = uvEmMetros(new RoundedBoxGeometry(l, a, p, segmentos, raio));
+    // Vértices compartilhados (malha indexada): o formato que o AR do Google (Scene Viewer) espera.
+    const geo = mergeVertices(uvEmMetros(new RoundedBoxGeometry(l, a, p, segmentos, raio)));
     const malha = new THREE.Mesh(geo, material);
     malha.name = nome;
     malha.position.set(x, y, z);
@@ -82,18 +83,29 @@ export function construirSofaDublin(THREE, RoundedBoxGeometry, texturas) {
     grupo.add(painel);
   }
 
-  // Assentos retráteis: 2 módulos, cada um com 3 gomos (as costuras aparecem no topo e na frente)
-  const larguraModulo = internoX; // 0.75
-  const gomos = 3, folga = 0.002;
-  const larguraGomo = (larguraModulo - folga) / gomos;
+  // Assentos retráteis: 2 módulos inteiros (sem frestas internas). As 2 costuras de cada módulo
+  // são um "vivo" de tecido em relevo que corre pelo topo e desce pela frente, como no sofá real.
+  const folgaModulos = 0.006;
+  const larguraModulo = internoX - folgaModulos / 2;
   const profundidadeAssento = frenteAssento - fundoAssento;
+  const raioAssento = 0.035;
   for (const modulo of [-1, 1]) {
-    const inicio = modulo < 0 ? -internoX : 0;
-    for (let g = 0; g < gomos; g++) {
-      const x = inicio + folga / 2 + larguraGomo * (g + 0.5);
-      caixa(`Assento_${modulo < 0 ? 'E' : 'D'}_${g + 1}`, tecido,
-        [larguraGomo - 0.002, alturaAssento - chao, profundidadeAssento],
-        [x, chao + (alturaAssento - chao) / 2, (frenteAssento + fundoAssento) / 2], 0.012, 3);
+    const centroX = modulo * (folgaModulos / 2 + larguraModulo / 2);
+    caixa(`Assento_${modulo < 0 ? 'E' : 'D'}`, tecido,
+      [larguraModulo, alturaAssento - chao, profundidadeAssento],
+      [centroX, chao + (alturaAssento - chao) / 2, (frenteAssento + fundoAssento) / 2], raioAssento, 4);
+
+    for (const fracao of [-1 / 6, 1 / 6]) {
+      const x = centroX + fracao * larguraModulo * 1.0;
+      const topo = alturaAssento + 0.0015, frente = frenteAssento + 0.0015, r = raioAssento;
+      const caminho = new THREE.CurvePath();
+      caminho.add(new THREE.LineCurve3(new THREE.Vector3(x, topo, fundoAssento + 0.06), new THREE.Vector3(x, topo, frente - r)));
+      caminho.add(new THREE.QuadraticBezierCurve3(new THREE.Vector3(x, topo, frente - r), new THREE.Vector3(x, topo, frente), new THREE.Vector3(x, topo - r, frente)));
+      caminho.add(new THREE.LineCurve3(new THREE.Vector3(x, topo - r, frente), new THREE.Vector3(x, chao + 0.04, frente)));
+      const geo = uvEmMetros(new THREE.TubeGeometry(caminho, 48, 0.004, 6, false));
+      const vivo = new THREE.Mesh(geo, tecido);
+      vivo.name = `Costura_${modulo < 0 ? 'E' : 'D'}${fracao < 0 ? 1 : 2}`;
+      grupo.add(vivo);
     }
   }
 
