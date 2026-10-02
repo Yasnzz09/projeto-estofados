@@ -62,6 +62,17 @@ export interface OpcoesCena {
 const AFASTAMENTO_COTA = 0.04;
 const DISTANCIA_MIN = 0.6;
 const DISTANCIA_MAX = 12;
+/*
+ * Suavização do giroscópio (contra o "tremido"):
+ * - mexidas menores que ZONA_MORTA são ruído do sensor e são ignoradas;
+ * - quando o celular se move de verdade, a câmera acompanha até ficar a menos de PARADO;
+ * - movimentos lentos são bem suavizados e os rápidos respondem na hora.
+ */
+const ZONA_MORTA = MathUtils.degToRad(0.8);
+const PARADO = MathUtils.degToRad(0.1);
+const MOVIMENTO_RAPIDO = MathUtils.degToRad(10);
+const SUAVIDADE_LENTA = 4; // por segundo
+const SUAVIDADE_RAPIDA = 18; // por segundo
 /** Limites de altura (m) para Subir / Descer: o suficiente para acertar o chão sem perder o móvel. */
 const ALTURA_MIN = -1;
 const ALTURA_MAX = 1.5;
@@ -84,6 +95,8 @@ export class CenaAR {
   private modeloCarregado = false;
   private posicionado = false;
   private temOrientacao = false;
+  private seguindoSensor = false;
+  private ultimoQuadro = 0;
   private sujo = true;
   private raf = 0;
   private largura = 1;
@@ -280,19 +293,34 @@ export class CenaAR {
   }
 
   iniciar() {
-    const quadro = () => {
+    const quadro = (agora: number) => {
       this.raf = requestAnimationFrame(quadro);
-      if (this.temOrientacao && this.camera.quaternion.angleTo(this.quatAlvo) > 0.0005) {
-        // Suaviza o tremido do sensor.
-        this.camera.quaternion.slerp(this.quatAlvo, 0.4);
-        this.sujo = true;
-      }
+      const dt = this.ultimoQuadro ? Math.min((agora - this.ultimoQuadro) / 1000, 0.1) : 1 / 60;
+      this.ultimoQuadro = agora;
+      if (this.temOrientacao) this.suavizarCamera(dt);
       if (!this.sujo) return;
       this.sujo = false;
       this.renderer.render(this.scene, this.camera);
       if (this._mostrarCotas) this.emitirCotas();
     };
     this.raf = requestAnimationFrame(quadro);
+  }
+
+  /** Aproxima a câmera da leitura do sensor sem repassar o tremido. */
+  private suavizarCamera(dt: number) {
+    const angulo = this.camera.quaternion.angleTo(this.quatAlvo);
+    if (!this.seguindoSensor) {
+      if (angulo < ZONA_MORTA) return;
+      this.seguindoSensor = true;
+    }
+    if (angulo < PARADO) {
+      this.seguindoSensor = false;
+      return;
+    }
+    const t = MathUtils.clamp((angulo - ZONA_MORTA) / (MOVIMENTO_RAPIDO - ZONA_MORTA), 0, 1);
+    const k = MathUtils.lerp(SUAVIDADE_LENTA, SUAVIDADE_RAPIDA, t);
+    this.camera.quaternion.slerp(this.quatAlvo, 1 - Math.exp(-k * dt));
+    this.sujo = true;
   }
 
   private projetar(x: number, y: number, z: number): PontoTela {
