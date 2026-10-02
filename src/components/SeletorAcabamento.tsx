@@ -14,7 +14,7 @@ function estiloAmostra(a: Acabamento) {
   return {
     backgroundColor: a.corHex,
     backgroundImage: `url(${urlTexturaDeTecido(a.tipo)})`,
-    backgroundSize: '64px',
+    backgroundSize: '160px',
     backgroundBlendMode: 'multiply' as const,
   };
 }

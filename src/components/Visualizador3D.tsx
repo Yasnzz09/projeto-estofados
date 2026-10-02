@@ -6,10 +6,8 @@ import { isAndroid } from '../lib/plataforma';
 import { linkOrcamento } from '../lib/whatsapp';
 import {
   REPETICAO_TEXTURA_FOTO,
-  REPETICAO_TEXTURA_GERADA,
   RUGOSIDADE,
   ehMaterialDeTecido,
-  urlTexturaDeTecido,
 } from '../lib/tecido';
 import type { ModelViewerElement } from '../model-viewer';
 import type { Acabamento, Produto } from '../types';
@@ -34,41 +32,31 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
   const acabamentoRef = useRef(acabamento);
   acabamentoRef.current = acabamento;
 
-  // Troca de tecido: aplica cor, rugosidade e textura só nos materiais de tecido do .glb.
+  // Cada cor/tecido já tem o próprio arquivo 3D pronto (cor, trama, relevo e brilho: gerado no build).
+  // Aqui só entra a FOTO do tecido, quando o acabamento tiver uma (campo `textura`).
   useEffect(() => {
     const mv = mvRef.current;
-    if (!mv || !carregado || !acabamento) return;
+    if (!mv || !carregado || !acabamento?.textura) return;
     let cancelado = false;
-
-    const criarTextura = async () => {
-      if (acabamento.textura) {
-        try {
-          return { textura: await mv.createTexture(acabamento.textura), foto: true };
-        } catch {
-          // foto do tecido não encontrada: usa a trama gerada
-        }
-      }
-      return { textura: await mv.createTexture(urlTexturaDeTecido(acabamento.tipo)), foto: false };
-    };
+    const foto = acabamento.textura;
 
     const aplicar = async () => {
       const materiais = mv.model?.materials ?? [];
       const deTecido = materiais.filter((m) => ehMaterialDeTecido(m.name));
       const alvos = deTecido.length > 0 ? deTecido : materiais.slice(0, 1);
-      const { textura, foto } = await criarTextura();
+      const textura = await mv.createTexture(foto);
       if (cancelado) return;
-      const repeticao = foto ? REPETICAO_TEXTURA_FOTO : REPETICAO_TEXTURA_GERADA;
-      textura.sampler.setScale?.({ u: repeticao, v: repeticao });
+      textura.sampler.setScale?.({ u: REPETICAO_TEXTURA_FOTO, v: REPETICAO_TEXTURA_FOTO });
       for (const material of alvos) {
         const pbr = material.pbrMetallicRoughness;
-        // Com foto, a cor já vem da imagem; com a trama gerada (cinza), a cor vem do corHex.
-        pbr.setBaseColorFactor(foto ? '#ffffff' : acabamento.corHex);
+        pbr.setBaseColorFactor('#ffffff'); // a cor vem da foto
         pbr.setRoughnessFactor(RUGOSIDADE[acabamento.tipo]);
         pbr.setMetallicFactor(0);
         pbr.baseColorTexture.setTexture(textura);
       }
     };
 
+    // foto não encontrada: fica a trama gerada do próprio modelo
     aplicar().catch((erro: unknown) => console.warn('[tecido]', erro));
     return () => {
       cancelado = true;

@@ -1,7 +1,11 @@
 # Texturas de tecido
 
-Coloque aqui as fotos reais dos tecidos. Elas são aplicadas no modelo 3D (página do produto,
-iPhone e tela da câmera do Android) e também aparecem nas bolinhas do seletor "Escolha o tecido".
+**Arquivos `<tipo>-cor.jpg` e `<tipo>-relevo.jpg`** (boucle, linho, veludo, suede, couro): trama gerada
+por código (`scripts/modelos/tecidos.js`), usada em todos os modelos 3D e nas bolinhas de tecido.
+Não apague. Ajustes de brilho/rugosidade de cada tipo ficam em `src/data/tecidos.json`.
+
+Fotos reais de tecido também podem ficar aqui (com outro nome). Elas aparecem na página do produto
+e nas bolinhas do seletor "Escolha o tecido"; no AR do Android continua a trama gerada.
 
 ## Como preparar a imagem
 
@@ -24,7 +28,7 @@ Em `src/data/products.json`, no acabamento, adicione o campo `textura`:
 ```
 
 - Com `textura`, a cor vem da foto (o `corHex` continua sendo usado nas bolinhas do catálogo).
-- Sem `textura`, o site gera uma trama sutil de tecido automaticamente e tinge com o `corHex`.
+- Sem `textura`, vale a trama gerada do tipo (bouclê, linho...), tingida com o `corHex`.
 - Se o arquivo não for encontrado, o site volta para a trama gerada.
 
 ## Modelos 3D

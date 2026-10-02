@@ -6,24 +6,23 @@
 // Os estofados são "estufados" (bojo de espuma) e o bouclê tem relevo (normal map).
 // Materiais com nome "Tecido*" recebem as cores/tecidos do site; "Couro" e "Base" não mudam.
 //
-// O arquivo public/modelos/sofa-dublin.glb foi exportado deste código com o GLTFExporter do three.js
-// (texturas de src/lib/tecido.ts, repetidas a cada 25 cm). Para ajustar, mude aqui e exporte de novo.
+// O arquivo public/modelos/sofa-dublin.glb foi exportado deste código com o GLTFExporter do three.js.
+// Texturas: public/texturas/<tipo>-cor.jpg e -relevo.jpg (geradas por tecidos.js), material de
+// tecido com brilho (sheen) em materiais.js, acabamento por tipo em src/data/tecidos.json.
+// Para ajustar, mude aqui e exporte de novo.
 
-export function construirSofaDublin(THREE, texturas, mergeVertices) {
+import { materialDeTecido, uvEmLadrilhos } from './materiais.js';
+
+/** `texturas` = { Bouclé: { cor, relevo }, Couro: { cor, relevo } }; `config` = src/data/tecidos.json. */
+export function construirSofaDublin(THREE, texturas, mergeVertices, config) {
   const { Vector3 } = THREE;
   const grupo = new THREE.Group();
   grupo.name = 'Sofa_Dublin';
 
-  const tecido = new THREE.MeshStandardMaterial({
-    name: 'Tecido', color: 0xe9e2d6, map: texturas.boucle, normalMap: texturas.boucleRelevo,
-    normalScale: new THREE.Vector2(0.9, 0.9), roughness: 1, metalness: 0,
-  });
+  const tecido = materialDeTecido(THREE, { tipo: 'Bouclé', cor: 0xe9e2d6, texturas: texturas['Bouclé'], config });
   const almofada = tecido.clone();
   almofada.name = 'Tecido_Almofada';
-  const couro = new THREE.MeshStandardMaterial({
-    name: 'Couro', color: 0x5f3a27, map: texturas.couro, normalMap: texturas.couroRelevo,
-    normalScale: new THREE.Vector2(0.6, 0.6), roughness: 0.5, metalness: 0,
-  });
+  const couro = materialDeTecido(THREE, { nome: 'Couro', tipo: 'Couro', cor: 0x5f3a27, texturas: texturas.Couro, config });
   const base = new THREE.MeshStandardMaterial({ name: 'Base', color: 0x2b2623, roughness: 0.8, metalness: 0 });
 
   /** UV em metros (projeção pela direção da face): a textura fica com o mesmo tamanho em todas as peças. */
@@ -228,5 +227,6 @@ export function construirSofaDublin(THREE, texturas, mergeVertices) {
     vivo(`Vivo_Almofada_${lado < 0 ? 'E' : 'D'}`, naSuperficie, 0.005, almofada, g);
   }
 
+  uvEmLadrilhos(THREE, grupo, config);
   return grupo;
 }

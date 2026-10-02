@@ -1,0 +1,52 @@
+{
+  "_leia": "Acabamento de cada tipo de tecido nos modelos 3D. metrosPorRepeticao: quanto o ladrilho da textura cobre (UV dos modelos = metros / metrosPorRepeticao). rugosidade: 1 = fosco. relevo: força do normal map. brilho: brilho de tecido (KHR_materials_sheen), cor = cor do tecido x fator + soma; rugosidade do brilho (menor = mais concentrado na borda, tipo veludo).",
+  "metrosPorRepeticao": 0.125,
+  "tipos": {
+    "Bouclé": {
+      "arquivo": "boucle",
+      "rugosidade": 1,
+      "relevo": 1,
+      "brilho": {
+        "fator": 0.35,
+        "soma": 0.05,
+        "rugosidade": 0.5
+      }
+    },
+    "Linho": {
+      "arquivo": "linho",
+      "rugosidade": 0.95,
+      "relevo": 1,
+      "brilho": {
+        "fator": 0.35,
+        "soma": 0.04,
+        "rugosidade": 0.6
+      }
+    },
+    "Veludo": {
+      "arquivo": "veludo",
+      "rugosidade": 1,
+      "relevo": 1,
+      "brilho": {
+        "fator": 1.0,
+        "soma": 0.1,
+        "rugosidade": 0.42
+      }
+    },
+    "Suede": {
+      "arquivo": "suede",
+      "rugosidade": 1,
+      "relevo": 1,
+      "brilho": {
+        "fator": 0.6,
+        "soma": 0.08,
+        "rugosidade": 0.5
+      }
+    },
+    "Couro": {
+      "arquivo": "couro",
+      "rugosidade": 0.6,
+      "relevo": 1,
+      "brilho": null
+    }
+  }
+}

@@ -3,6 +3,7 @@
 // O Sofá Dublin tem o próprio arquivo (sofa-dublin.js).
 
 import { criarFerramentas } from './base.js';
+import { materialDeTecido, uvEmLadrilhos } from './materiais.js';
 
 /**
  * Sofá ou poltrona genérico: base, braços, encosto, almofadas de assento e de encosto com vivo, pés.
@@ -202,14 +203,19 @@ function fogao(THREE, f, m) {
 }
 
 /**
- * Monta o modelo de um produto. `texturas` traz as texturas de tecido (cor + relevo) por tipo.
- * Retorna o grupo pronto para exportar.
+ * Monta o modelo de um produto. `texturas` traz as texturas de tecido (cor + relevo) por tipo;
+ * `config` = src/data/tecidos.json. Retorna o grupo pronto para exportar.
  */
-export function construirProduto(THREE, mergeVertices, id, texturas, cores = {}) {
+export function construirProduto(THREE, mergeVertices, id, texturas, config, cores = {}) {
+  const grupo = montarProduto(THREE, mergeVertices, id, texturas, config, cores);
+  uvEmLadrilhos(THREE, grupo, config); // só mexe nas peças de tecido
+  return grupo;
+}
+
+function montarProduto(THREE, mergeVertices, id, texturas, config, cores) {
   const f = criarFerramentas(THREE, mergeVertices);
-  const tecido = (tipo, cor, rugosidade) => {
-    const t = texturas[tipo];
-    const mat = new THREE.MeshStandardMaterial({ name: 'Tecido', color: cor, map: t.cor, normalMap: t.relevo, normalScale: new THREE.Vector2(0.7, 0.7), roughness: rugosidade, metalness: 0 });
+  const tecido = (tipo, cor) => {
+    const mat = materialDeTecido(THREE, { tipo, cor, texturas: texturas[tipo], config });
     const alm = mat.clone();
     alm.name = 'Tecido_Almofada';
     return { tecido: mat, almofada: alm };
@@ -218,7 +224,7 @@ export function construirProduto(THREE, mergeVertices, id, texturas, cores = {})
   const metalPreto = new THREE.MeshStandardMaterial({ name: 'Pes', color: 0x1d1d1f, roughness: 0.35, metalness: 0.7 });
 
   if (id === 'sofa-lisboa') {
-    const g = sofa(THREE, f, { ...tecido('Linho', cores.tecido ?? 0xcbb79a, 0.92), pes: madeira(0x6b4a32) }, {
+    const g = sofa(THREE, f, { ...tecido('Linho', cores.tecido ?? 0xcbb79a), pes: madeira(0x6b4a32) }, {
       L: 2.1, A: 0.95, P: 1.0, lugares: 3,
       braco: { l: 0.2, a: 0.63, raio: 0.07 }, assento: { altura: 0.47, espessura: 0.17 },
       encosto: { profundidade: 0.2, topo: 0.72 }, almofadaEncosto: { profundidade: 0.2, inclinacao: 0.2 },
@@ -227,7 +233,7 @@ export function construirProduto(THREE, mergeVertices, id, texturas, cores = {})
     return g;
   }
   if (id === 'sofa-oslo') {
-    return sofa(THREE, f, { ...tecido('Linho', cores.tecido ?? 0x9b9893, 0.92), pes: metalPreto }, {
+    return sofa(THREE, f, { ...tecido('Linho', cores.tecido ?? 0x9b9893), pes: metalPreto }, {
       L: 1.56, A: 0.84, P: 0.88, lugares: 2,
       braco: { l: 0.13, a: 0.6, raio: 0.045, bojo: { topo: 0.006, frente: 0.006 } }, assento: { altura: 0.45, espessura: 0.15 },
       encosto: { profundidade: 0.17, topo: 0.66 }, almofadaEncosto: { profundidade: 0.17, inclinacao: 0.18 },
@@ -235,7 +241,7 @@ export function construirProduto(THREE, mergeVertices, id, texturas, cores = {})
     });
   }
   if (id === 'poltrona-aurora') {
-    return sofa(THREE, f, { ...tecido('Veludo', cores.tecido ?? 0xb5714f, 1), pes: madeira(0x4a3121) }, {
+    return sofa(THREE, f, { ...tecido('Veludo', cores.tecido ?? 0xb5714f), pes: madeira(0x4a3121) }, {
       L: 0.8, A: 1.02, P: 0.84, lugares: 1,
       braco: { l: 0.13, a: 0.64, raio: 0.065, bojo: { topo: 0.014, frente: 0.012, lados: 0.006 } }, assento: { altura: 0.46, espessura: 0.15 },
       encosto: { profundidade: 0.16, topo: 0.96 }, almofadaEncosto: { profundidade: 0.13, inclinacao: 0.12 },
@@ -244,7 +250,7 @@ export function construirProduto(THREE, mergeVertices, id, texturas, cores = {})
     });
   }
   if (id === 'poltrona-lina') {
-    return sofa(THREE, f, { ...tecido('Linho', cores.tecido ?? 0x7d8463, 0.92), pes: metalPreto }, {
+    return sofa(THREE, f, { ...tecido('Linho', cores.tecido ?? 0x7d8463), pes: metalPreto }, {
       L: 0.68, A: 0.78, P: 0.72, lugares: 1,
       braco: { l: 0.1, a: 0.58, raio: 0.03, bojo: { topo: 0.004 } }, assento: { altura: 0.44, espessura: 0.13 },
       encosto: { profundidade: 0.13, topo: 0.62 }, almofadaEncosto: { profundidade: 0.13, inclinacao: 0.15 },
