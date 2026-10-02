@@ -302,13 +302,21 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
               </li>
               <li className="flex gap-3">
                 <span className="grid size-6 shrink-0 place-items-center rounded-full bg-areia-100 text-xs font-bold">2</span>
-                Mova o celular devagar, de um lado para o outro, até o móvel aparecer.
-              </li>
-              <li className="flex gap-3">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-areia-100 text-xs font-bold">3</span>
-                Arraste com o dedo para posicionar. Ele aparece em tamanho real.
+                Mova o celular devagar até o móvel aparecer. Ele fica no chão, em tamanho real.
               </li>
             </ol>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-left">
+              <div className="rounded-2xl bg-areia-50 p-3 ring-1 ring-areia-200">
+                <GestoUmDedo />
+                <p className="mt-2 text-sm font-semibold">Mover</p>
+                <p className="text-xs text-grafite-500">Arraste com 1 dedo</p>
+              </div>
+              <div className="rounded-2xl bg-areia-50 p-3 ring-1 ring-areia-200">
+                <GestoDoisDedos />
+                <p className="mt-2 text-sm font-semibold">Girar</p>
+                <p className="text-xs text-grafite-500">Torça com 2 dedos</p>
+              </div>
+            </div>
             <button type="button" onClick={abrirCamera} className="btn-primario mt-6 w-full">
               <IconeCubo /> Abrir a câmera
             </button>
@@ -344,6 +352,27 @@ function marcarDicaVista() {
   }
 }
 
+/** Gesto de arrastar com um dedo (mover o móvel). */
+function GestoUmDedo() {
+  return (
+    <svg viewBox="0 0 48 32" className="h-8 w-12 text-grafite-700" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="24" cy="16" r="5" fill="#d8c3a5" stroke="none" />
+      <path d="M6 16h8M34 16h8M9 12l-4 4 4 4M39 12l4 4-4 4" />
+    </svg>
+  );
+}
+
+/** Gesto de torcer com dois dedos (girar o móvel). */
+function GestoDoisDedos() {
+  return (
+    <svg viewBox="0 0 48 32" className="h-8 w-12 text-grafite-700" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="16" cy="11" r="4.5" fill="#d8c3a5" stroke="none" />
+      <circle cx="32" cy="21" r="4.5" fill="#d8c3a5" stroke="none" />
+      <path d="M38 8a14 14 0 0 1 2 12M40 20l-3-1M40 20l1-3M10 24a14 14 0 0 1-2-12M8 12l3 1M8 12l-1 3" />
+    </svg>
+  );
+}
+
 /** Celular apontado para o chão, com um móvel aparecendo. */
 function IlustracaoDica() {
   return (
@@ -358,8 +387,6 @@ function IlustracaoDica() {
         <rect x="107" y="11" width="22" height="38" rx="3" fill="#f6f1ea" />
         <rect x="111" y="30" width="14" height="6" rx="2" fill="#d8c3a5" />
       </g>
-      <path d="M40 22c6-6 14-6 20 0" stroke="#b0916a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <path d="M100 22c-6-6-14-6-20 0" stroke="#b0916a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
