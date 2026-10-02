@@ -96,6 +96,14 @@ export const IconeAltura = ({ sentido, className }: P & { sentido: 'subir' | 'de
   </Icone>
 );
 
+/** Celular com ondas de movimento: modo "seguir o celular". */
+export const IconeMovimento = (p: P) => (
+  <Icone {...p}>
+    <rect x="8" y="3" width="8" height="18" rx="2" />
+    <path d="M11 18h2M4.5 8.5a6 6 0 0 0 0 7M19.5 8.5a6 6 0 0 1 0 7" />
+  </Icone>
+);
+
 export const IconeCamera = (p: P) => (
   <Icone {...p}>
     <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />

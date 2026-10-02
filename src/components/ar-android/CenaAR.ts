@@ -63,18 +63,14 @@ const AFASTAMENTO_COTA = 0.04;
 const DISTANCIA_MIN = 0.6;
 const DISTANCIA_MAX = 12;
 /*
- * Suavização do giroscópio (contra o "tremido"):
- * - mexidas menores que ZONA_MORTA são ruído do sensor e são ignoradas;
- * - quando o celular se move de verdade, a câmera acompanha até ficar a menos de PARADO;
- * - movimentos lentos são bem suavizados e os rápidos respondem na hora.
+ * Giroscópio. Sem ARCore o celular não enxerga o chão, então seguir o sensor faz o
+ * móvel "deslizar". Por padrão a cena fica TRAVADA: lemos a inclinação do celular por
+ * um instante ao abrir (calibração), e depois o móvel só se mexe pelas setas.
+ * O modo "seguir o celular" continua disponível, com suavização leve (sem atraso).
  */
-const ZONA_MORTA = MathUtils.degToRad(1.8);
-const PARADO = MathUtils.degToRad(0.15);
-const MOVIMENTO_RAPIDO = MathUtils.degToRad(15);
-const SUAVIDADE_LENTA = 2.5; // por segundo
-const SUAVIDADE_RAPIDA = 10; // por segundo
-/** Filtro nas leituras do sensor (0 a 1): quanto menor, mais suave. */
-const FILTRO_SENSOR = 0.12;
+const CALIBRACAO_MS = 600;
+const FILTRO_SENSOR = 0.3;
+const SUAVIDADE_SEGUIR = 20; // por segundo
 /** Limites de altura (m) para Subir / Descer: o suficiente para acertar o chão sem perder o móvel. */
 const ALTURA_MIN = -1;
 const ALTURA_MAX = 1.5;
@@ -96,8 +92,10 @@ export class CenaAR {
   private readonly ambiente: Texture;
   private modeloCarregado = false;
   private posicionado = false;
+  private movidoPeloUsuario = false;
   private temOrientacao = false;
-  private seguindoSensor = false;
+  private calibrandoAte = 0;
+  private _seguirCelular = false;
   private ultimoQuadro = 0;
   private sujo = true;
   private raf = 0;
@@ -220,14 +218,32 @@ export class CenaAR {
       .setFromEuler(this.euler)
       .multiply(this.q1)
       .multiply(this.q0.setFromAxisAngle(this.eixoZ, -r(anguloTela)));
-    // Média móvel das leituras: tira o tremido antes de mexer a câmera.
-    if (this.temOrientacao) this.quatAlvo.slerp(this.quatBruto, FILTRO_SENSOR);
-    else this.quatAlvo.copy(this.quatBruto);
     if (!this.temOrientacao) {
       this.temOrientacao = true;
+      this.quatAlvo.copy(this.quatBruto);
       this.camera.quaternion.copy(this.quatAlvo);
+      this.calibrandoAte = performance.now() + CALIBRACAO_MS;
       if (!this.posicionado) this.centralizar();
+      this.sujo = true;
+      return;
     }
+    // Média das leituras: guarda sempre a inclinação atual (usada pelo "Centralizar").
+    this.quatAlvo.slerp(this.quatBruto, FILTRO_SENSOR);
+
+    const calibrando = performance.now() < this.calibrandoAte;
+    if (calibrando) {
+      // Primeiro instante: acerta a inclinação e reposiciona o móvel na frente.
+      this.camera.quaternion.copy(this.quatAlvo);
+      if (!this.movidoPeloUsuario) this.posicionarNaFrente();
+      this.sujo = true;
+    }
+  }
+
+  /** Liga/desliga o modo em que a cena acompanha o giroscópio. */
+  set seguirCelular(valor: boolean) {
+    this._seguirCelular = valor;
+    // Ao travar de novo, fixa na inclinação atual e traz o móvel para a frente.
+    if (!valor && this.temOrientacao) this.centralizar();
     this.sujo = true;
   }
 
@@ -249,11 +265,22 @@ export class CenaAR {
     return frente.normalize();
   }
 
-  /** Coloca o móvel no meio da tela, a `distanciaInicialM`, de frente para a câmera. */
+  /**
+   * "Centralizar": usa a inclinação atual do celular e traz o móvel para o meio da tela,
+   * na altura do chão. É também o jeito de "recalibrar" a cena travada.
+   */
   centralizar() {
+    if (this.temOrientacao) this.camera.quaternion.copy(this.quatAlvo);
+    this.movel.position.y = 0;
+    this.movidoPeloUsuario = false;
+    this.posicionarNaFrente();
+  }
+
+  /** Coloca o móvel no meio da tela, a `distanciaInicialM`, de frente para a câmera. */
+  private posicionarNaFrente() {
     const frente = this.frenteNoChao();
     const d = this.opcoes.distanciaInicialM;
-    this.movel.position.set(this.camera.position.x + frente.x * d, 0, this.camera.position.z + frente.z * d);
+    this.movel.position.set(this.camera.position.x + frente.x * d, this.movel.position.y, this.camera.position.z + frente.z * d);
     this.movel.rotation.y = Math.atan2(-frente.x, -frente.z);
     this.posicionado = true;
     this.sujo = true;
@@ -261,6 +288,7 @@ export class CenaAR {
 
   /** Move o móvel em metros, relativo para onde o celular está virado. */
   mover(paraFrente: number, paraDireita: number) {
+    this.movidoPeloUsuario = true;
     const frente = this.frenteNoChao();
     const p = this.movel.position;
     p.x += frente.x * paraFrente - frente.z * paraDireita;
@@ -279,12 +307,14 @@ export class CenaAR {
 
   /** Sobe ou desce o móvel (em metros). Ajuda a "encostar" o móvel no chão. */
   subir(metros: number) {
+    this.movidoPeloUsuario = true;
     const p = this.movel.position;
     p.y = MathUtils.clamp(p.y + metros, ALTURA_MIN, ALTURA_MAX);
     this.sujo = true;
   }
 
   girar(graus: number) {
+    this.movidoPeloUsuario = true;
     this.movel.rotation.y += MathUtils.degToRad(graus);
     this.sujo = true;
   }
@@ -303,7 +333,7 @@ export class CenaAR {
       this.raf = requestAnimationFrame(quadro);
       const dt = this.ultimoQuadro ? Math.min((agora - this.ultimoQuadro) / 1000, 0.1) : 1 / 60;
       this.ultimoQuadro = agora;
-      if (this.temOrientacao) this.suavizarCamera(dt);
+      if (this.temOrientacao && this._seguirCelular) this.suavizarCamera(dt);
       if (!this.sujo) return;
       this.sujo = false;
       this.renderer.render(this.scene, this.camera);
@@ -312,20 +342,10 @@ export class CenaAR {
     this.raf = requestAnimationFrame(quadro);
   }
 
-  /** Aproxima a câmera da leitura do sensor sem repassar o tremido. */
+  /** Modo "seguir o celular": acompanha o sensor com suavização leve, sem atraso visível. */
   private suavizarCamera(dt: number) {
-    const angulo = this.camera.quaternion.angleTo(this.quatAlvo);
-    if (!this.seguindoSensor) {
-      if (angulo < ZONA_MORTA) return;
-      this.seguindoSensor = true;
-    }
-    if (angulo < PARADO) {
-      this.seguindoSensor = false;
-      return;
-    }
-    const t = MathUtils.clamp((angulo - ZONA_MORTA) / (MOVIMENTO_RAPIDO - ZONA_MORTA), 0, 1);
-    const k = MathUtils.lerp(SUAVIDADE_LENTA, SUAVIDADE_RAPIDA, t);
-    this.camera.quaternion.slerp(this.quatAlvo, 1 - Math.exp(-k * dt));
+    if (this.camera.quaternion.angleTo(this.quatAlvo) < 0.0005) return;
+    this.camera.quaternion.slerp(this.quatAlvo, 1 - Math.exp(-SUAVIDADE_SEGUIR * dt));
     this.sujo = true;
   }
 

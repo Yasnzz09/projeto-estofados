@@ -11,6 +11,7 @@ import {
   IconeGirarDireita,
   IconeGirarEsquerda,
   IconeMira,
+  IconeMovimento,
   IconeRegua,
   IconeSeta,
   IconeX,
@@ -140,6 +141,10 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
   const [erro3D, setErro3D] = useState(false);
   const [semSensores, setSemSensores] = useState(false);
   const [mostrarMedidas, setMostrarMedidas] = useState(false);
+  // Por padrão a cena fica travada (o móvel não segue o giroscópio e não "desliza").
+  const [seguirCelular, setSeguirCelular] = useState(false);
+  const seguirCelularRef = useRef(seguirCelular);
+  seguirCelularRef.current = seguirCelular;
   const [dica, setDica] = useState(() => !dicaJaVista());
   const [foto, setFoto] = useState<{ url: string; arquivo: File } | null>(null);
   const [tirandoFoto, setTirandoFoto] = useState(false);
@@ -231,6 +236,7 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
     }
     const cena = criada;
     cenaRef.current = cena;
+    cena.seguirCelular = seguirCelularRef.current;
     cena.aplicarAcabamento(acabamentoRef.current ?? null);
 
     cena.aoAtualizarCotas = (cotas: CotaTela[] | null) => {
@@ -313,6 +319,10 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
   useEffect(() => {
     if (cenaRef.current) cenaRef.current.mostrarCotas = mostrarMedidas;
   }, [mostrarMedidas]);
+
+  useEffect(() => {
+    if (cenaRef.current) cenaRef.current.seguirCelular = seguirCelular;
+  }, [seguirCelular]);
 
   useEffect(() => {
     cenaRef.current?.aplicarAcabamento(acabamento ?? null);
@@ -436,7 +446,7 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
         </button>
       </div>
 
-      {/* Lateral: medidas e foto */}
+      {/* Lateral: medidas, seguir o celular e foto */}
       <div className="absolute right-3 top-[calc(max(env(safe-area-inset-top),0.75rem)+4.5rem)] flex flex-col gap-2">
         <button
           type="button"
@@ -447,6 +457,17 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
           <span className="flex flex-col items-center leading-none">
             <IconeRegua className="size-6" />
             <span className="mt-1 text-[10px] font-medium">Medidas</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setSeguirCelular((v) => !v)}
+          aria-pressed={seguirCelular}
+          className={`${seguirCelular ? estiloBotaoAtivo : estiloBotao} size-16`}
+        >
+          <span className="flex flex-col items-center leading-none">
+            <IconeMovimento className="size-6" />
+            <span className="mt-1 text-[10px] font-medium">{seguirCelular ? 'Seguindo' : 'Travado'}</span>
           </span>
         </button>
         <button
@@ -462,7 +483,7 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
         </button>
       </div>
 
-      {semSensores && (
+      {semSensores && seguirCelular && (
         <p className="absolute inset-x-3 top-[calc(max(env(safe-area-inset-top),0.75rem)+4.5rem)] mr-20 rounded-xl bg-black/45 px-3 py-2 text-xs backdrop-blur-sm">
           Movimento do celular indisponível. Use as setas — ou ative “Sensores de movimento” nas configurações do site.
         </p>
@@ -486,7 +507,7 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
 
       {dica && modeloPronto && estadoCamera === 'ok' && (
         <div className="absolute inset-x-6 top-[38%] mx-auto max-w-xs rounded-2xl bg-white/95 p-4 text-center text-grafite-900 shadow-xl">
-          <p className="font-semibold">Aponte para o chão e use as setas para posicionar o móvel</p>
+          <p className="font-semibold">Aponte o celular para onde quer o móvel e toque em Centralizar. Depois, ajuste com as setas</p>
           <button type="button" onClick={fecharDica} className="btn-primario mt-3 w-full">
             Entendi
           </button>
