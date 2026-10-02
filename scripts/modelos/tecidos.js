@@ -161,34 +161,80 @@ function linho(N) {
 function veludo(N) {
   const altura = new Float32Array(N * N);
   const tom = new Float32Array(N * N);
+  const inclinacao = new Float32Array(N * N * 2);
+  // pontinhas do pelo: granulado fino e uniforme (média 3x3 de ruído = "pelinho" macio)
+  const ponta = new Float32Array(N * N);
+  for (let k = 0; k < N * N; k++) ponta[k] = hash(k % N, (k / N) | 0, 61);
+  const pelo = (x, y) => {
+    let soma = 0;
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) soma += ponta[mod(y + b, N) * N + mod(x + a, N)];
+    return soma / 9;
+  };
   for (let y = 0; y < N; y++) {
     for (let x = 0; x < N; x++) {
-      const pelo = hash(x, y, 61);
-      const deitado = ruido(x, y, 6, 24, 63) * 0.6 + ruido(x, y, 12, 48, 65) * 0.4;
+      // direção do pelo deitado: muda aos poucos, em manchinhas de 1 a 2 cm (amassado de uso)
+      const wx = x + 40 * (ruido(x, y, 8, 8, 62) - 0.5), wy = y + 40 * (ruido(x, y, 8, 8, 64) - 0.5);
+      const ang = Math.PI / 2 + (fbm(wx, wy, 10, 2, 63) - 0.5) * Math.PI * 1.4;
+      const deitado = 0.1 + 0.1 * fbm(x, y, 16, 2, 65);
+      // riscos finos ao longo do pelo (pelo penteado)
+      const risco = ruido(x, y, 512, 24, 67) - 0.5;
       const k = y * N + x;
-      altura[k] = 0.5 + 0.3 * (pelo - 0.5) + 0.3 * (deitado - 0.5);
-      tom[k] = 0.97 + 0.04 * (deitado - 0.5) + 0.04 * (pelo - 0.5);
+      const p = pelo(x, y);
+      inclinacao[k * 2] = Math.cos(ang) * deitado;
+      inclinacao[k * 2 + 1] = Math.sin(ang) * deitado;
+      altura[k] = 0.5 + 0.6 * (p - 0.5) + 0.25 * risco;
+      // pelo virado para um lado reflete mais: o tom varia de leve com a direção
+      tom[k] = 0.96 + 0.025 * Math.cos(ang - Math.PI / 2) + 0.05 * (p - 0.5) + 0.02 * risco;
     }
   }
-  return { altura, tom, contraste: 0.04, forca: 1.2 };
+  return { altura, tom, contraste: 0.06, forca: 2.4, inclinacao };
 }
 
 // ---------------------------------------------------------------------------
-// Suede: camurça, fibra curtinha com leve mesclado.
+// Suede: camurça. Microfibra curtinha penteada numa direção, com "marcas de dedo"
+// (faixas onde a fibra foi escovada ao contrário, mais claras ou mais escuras) e leve mesclado.
 
 function suede(N) {
   const altura = new Float32Array(N * N);
   const tom = new Float32Array(N * N);
+  const inclinacao = new Float32Array(N * N * 2);
+  // direção da fibra em cada ponto: para baixo, invertida nas marcas escovadas
+  const sentido = new Float32Array(N * N);
   for (let y = 0; y < N; y++) {
     for (let x = 0; x < N; x++) {
-      const fibra = hash(x, y, 71) * 0.5 + ruido(x, y, 256, 256, 73) * 0.5;
-      const mescla = fbm(x, y, 8, 3, 75);
-      const k = y * N + x;
-      altura[k] = 0.5 + 0.4 * (fibra - 0.5) + 0.3 * (mescla - 0.5);
-      tom[k] = 0.97 + 0.06 * (mescla - 0.5) + 0.03 * (fibra - 0.5);
+      const wx = x + 40 * (ruido(x, y, 12, 12, 72) - 0.5), wy = y + 30 * (ruido(x, y, 12, 12, 74) - 0.5);
+      const marca = ruido(wx, wy, 8, 24, 76) * 0.7 + ruido(wx, wy, 16, 48, 78) * 0.3; // faixas alongadas de ~1 cm
+      sentido[y * N + x] = Math.max(-1, Math.min(1, (marca - 0.5) * 3.5)); // -1 ... 1 com transição suave
     }
   }
-  return { altura, tom, contraste: 0.05, forca: 1.4 };
+  for (let k = 0; k < N * N; k++) altura[k] = 0.3 + 0.1 * hash(k, 70);
+  // fibrinhas: traços curtos seguindo a direção (e a sujeira de tom de cada fibra)
+  const FIBRAS = 70000;
+  for (let f = 0; f < FIBRAS; f++) {
+    const cx = hash(f, 1, 79) * N, cy = hash(f, 2, 79) * N;
+    const s = sentido[mod(Math.floor(cy), N) * N + mod(Math.floor(cx), N)];
+    const ang = Math.PI / 2 + (s < 0 ? Math.PI : 0) + (hash(f, 3, 79) - 0.5) * 1.1;
+    const comp = 5 + 9 * hash(f, 4, 79);
+    const dx = Math.cos(ang), dy = Math.sin(ang);
+    const alto = 0.55 + 0.45 * hash(f, 5, 79);
+    for (let t = 0; t <= comp; t += 0.7) {
+      const px = Math.floor(cx + dx * t), py = Math.floor(cy + dy * t);
+      const i = mod(py, N) * N + mod(px, N);
+      const h = alto * (0.6 + 0.4 * (t / comp)); // a ponta da fibra fica mais alta
+      if (h > altura[i]) altura[i] = h;
+    }
+  }
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      const k = y * N + x;
+      const s = sentido[k];
+      const mescla = fbm(x, y, 16, 3, 75);
+      inclinacao[k * 2] = 0;
+      inclinacao[k * 2 + 1] = 0.08 * s;
+      tom[k] = 0.96 + 0.02 * s + 0.04 * (mescla - 0.5);
+    }
+  }
+  return { altura, tom, contraste: 0.12, forca: 1.8, inclinacao };
 }
 
 // ---------------------------------------------------------------------------
@@ -233,7 +279,7 @@ const GERADORES = { Bouclé: boucle, Linho: linho, Veludo: veludo, Suede: suede,
  * A cor é normalizada para média ~0,9: o tom final fica perto do corHex cadastrado.
  */
 export function gerarTecido(tipo, N = TAMANHO) {
-  const { altura, tom, contraste, forca } = GERADORES[tipo](N);
+  const { altura, tom, contraste, forca, inclinacao } = GERADORES[tipo](N);
   let min = Infinity, max = -Infinity;
   for (const h of altura) { if (h < min) min = h; if (h > max) max = h; }
   const faixa = max - min || 1;
@@ -265,6 +311,8 @@ export function gerarTecido(tipo, N = TAMANHO) {
       const gx = (H(x + 1, y - 1) + 2 * H(x + 1, y) + H(x + 1, y + 1)) - (H(x - 1, y - 1) + 2 * H(x - 1, y) + H(x - 1, y + 1));
       const gy = (H(x - 1, y + 1) + 2 * H(x, y + 1) + H(x + 1, y + 1)) - (H(x - 1, y - 1) + 2 * H(x, y - 1) + H(x + 1, y - 1));
       let nx = -gx * forca / 4, ny = gy * forca / 4, nz = 1;
+      // pelo/fibra deitada numa direção (veludo, suede): a luz pega diferente em cada mancha
+      if (inclinacao) { nx += inclinacao[(y * N + x) * 2]; ny += inclinacao[(y * N + x) * 2 + 1]; }
       const l = Math.hypot(nx, ny, nz);
       nx /= l; ny /= l; nz /= l;
       const k = (y * N + x) * 4;
