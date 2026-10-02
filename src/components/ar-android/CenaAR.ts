@@ -74,18 +74,20 @@ const SUAVIDADE_SEGUIR = 20; // por segundo
 /** Limites de altura (m) para Subir / Descer: o suficiente para acertar o chão sem perder o móvel. */
 const ALTURA_MIN = -1;
 const ALTURA_MAX = 1.5;
-/** Inclinação usada quando o celular não tem giroscópio: levemente para baixo, mirando o chão. */
-const INCLINACAO_PADRAO = MathUtils.degToRad(-32);
+/** Inclinação usada quando o celular não informa o giroscópio: como a maioria segura o celular olhando a sala. */
+const INCLINACAO_PADRAO = MathUtils.degToRad(-10);
 /*
  * Cena travada: a câmera virtual usa só a inclinação (para cima/baixo) do celular, limitada
  * a uma faixa olhando para o chão. Assim o móvel nunca aparece "voando" perto do teto.
  */
 const INCLINACAO_MIN = MathUtils.degToRad(-65);
-const INCLINACAO_MAX = MathUtils.degToRad(-18);
-/** Altura da tela (-1 = base, 1 = topo) onde a base do móvel aparece ao centralizar. */
-const BASE_NA_TELA = -0.35;
-const DISTANCIA_CENTRALIZAR_MIN = 1.2;
-const DISTANCIA_CENTRALIZAR_MAX = 6;
+const INCLINACAO_MAX = MathUtils.degToRad(5);
+/** Folga entre o topo do móvel e a borda de cima da tela. */
+const MARGEM_TOPO = MathUtils.degToRad(4);
+/** Quanto da largura da tela o móvel ocupa ao centralizar (0 a 1). */
+const OCUPACAO_TELA = 0.8;
+const DISTANCIA_CENTRALIZAR_MIN = 1.5;
+const DISTANCIA_CENTRALIZAR_MAX = 8;
 
 /**
  * Cena three.js do visualizador com câmera (Android).
@@ -122,7 +124,6 @@ export class CenaAR {
   private readonly q1 = new Quaternion(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);
   private readonly eixoZ = new Vector3(0, 0, 1);
   private readonly v = new Vector3();
-  private readonly raio = new Vector3();
 
   private acabamento: AcabamentoCena | null = null;
   private texturaTecido: Texture | null = null;
@@ -169,6 +170,8 @@ export class CenaAR {
       this.movel.add(modelo);
       this.movel.add(this.criarSombra(this.tamanho.x, this.tamanho.z));
       this.modeloCarregado = true;
+      // Agora que sabemos o tamanho do móvel, recalcula a distância para ele caber na tela.
+      if (this.posicionado && !this.movidoPeloUsuario) this.posicionarNaFrente();
       if (this.acabamento) void this.aplicarNoModelo();
       this.sujo = true;
     } finally {
@@ -218,6 +221,7 @@ export class CenaAR {
     }
     this.camera.fov = MathUtils.radToDeg(2 * Math.atan(tanVertical));
     this.camera.updateProjectionMatrix();
+    if (this.posicionado && !this.movidoPeloUsuario) this.posicionarNaFrente();
     this.sujo = true;
   }
 
@@ -310,17 +314,31 @@ export class CenaAR {
   }
 
   /**
-   * Coloca o móvel de frente para a câmera, apoiado no chão e com a base na parte de baixo
-   * da tela (BASE_NA_TELA). Se o celular estiver apontado para cima, usa a distância padrão.
+   * Coloca o móvel de frente para a câmera, apoiado no chão, na distância em que ele
+   * inteiro cabe na tela (ocupando OCUPACAO_TELA da largura). Com o celular em pé a
+   * câmera enxerga uma faixa estreita: um sofá de 2 m só cabe a uns 4 a 5 m.
    */
   private posicionarNaFrente() {
-    const frente = this.frenteNoChao();
+    const frente = this.frenteNoChao().clone();
     let d = this.opcoes.distanciaInicialM;
-    this.camera.updateMatrixWorld();
-    const raio = this.raio.set(0, BASE_NA_TELA, 0.5).unproject(this.camera).sub(this.camera.position).normalize();
-    if (raio.y < -0.05) {
-      const t = (this.camera.position.y - this.movel.position.y) / -raio.y;
-      d = MathUtils.clamp(Math.hypot(raio.x * t, raio.z * t), DISTANCIA_CENTRALIZAR_MIN, DISTANCIA_CENTRALIZAR_MAX);
+    if (this.modeloCarregado) {
+      const tanHorizontal = Math.tan(MathUtils.degToRad(this.camera.fov) / 2) * this.camera.aspect;
+      const meiaLargura = Math.max(this.tamanho.x, this.tamanho.z) / 2;
+      d = meiaLargura / (tanHorizontal * OCUPACAO_TELA) + this.tamanho.z / 2;
+
+      // Garante que o topo do móvel não saia pela borda de cima da tela
+      // (ex.: celular apontado bem para o chão).
+      const olhar = this.v.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
+      const inclinacao = Math.asin(MathUtils.clamp(olhar.y, -1, 1));
+      const topoTela = inclinacao + MathUtils.degToRad(this.camera.fov) / 2 - MARGEM_TOPO;
+      const alturaCamera = this.camera.position.y - this.movel.position.y;
+      const alturaMovel = this.tamanho.y;
+      if (alturaMovel < alturaCamera && topoTela < 0) {
+        d = Math.min(d, (alturaCamera - alturaMovel) / Math.tan(-topoTela));
+      } else if (alturaMovel >= alturaCamera && topoTela > 0) {
+        d = Math.max(d, (alturaMovel - alturaCamera) / Math.tan(topoTela));
+      }
+      d = MathUtils.clamp(d, DISTANCIA_CENTRALIZAR_MIN, DISTANCIA_CENTRALIZAR_MAX);
     }
     this.movel.position.set(this.camera.position.x + frente.x * d, this.movel.position.y, this.camera.position.z + frente.z * d);
     this.movel.rotation.y = Math.atan2(-frente.x, -frente.z);

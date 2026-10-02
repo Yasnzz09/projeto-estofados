@@ -483,9 +483,11 @@ export default function ARAndroid({ produto, acabamento, aoFechar, aoIrParaTabel
         </button>
       </div>
 
-      {semSensores && seguirCelular && (
+      {semSensores && (
         <p className="absolute inset-x-3 top-[calc(max(env(safe-area-inset-top),0.75rem)+4.5rem)] mr-20 rounded-xl bg-black/45 px-3 py-2 text-xs backdrop-blur-sm">
-          Movimento do celular indisponível. Use as setas — ou ative “Sensores de movimento” nas configurações do site.
+          {seguirCelular
+            ? 'Movimento do celular indisponível. Use as setas — ou ative “Sensores de movimento” nas configurações do site.'
+            : 'Seu celular não informou a inclinação. Se o móvel não estiver encostado no chão, ajuste com Subir / Descer.'}
         </p>
       )}
 
