@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { config } from '../config';
 import { linkWhatsApp } from '../lib/whatsapp';
+import { registrarEvento } from '../lib/analytics';
 import { IconeChat } from './Icones';
 
 const estiloLink = ({ isActive }: { isActive: boolean }) =>
@@ -59,6 +60,7 @@ export default function Cabecalho() {
           </a>
           <a
             href={linkWhatsApp('Olá! Gostaria de mais informações sobre os móveis.')}
+            onClick={() => registrarEvento('contato_whatsapp', { origem: 'cabecalho' })}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Falar no WhatsApp"

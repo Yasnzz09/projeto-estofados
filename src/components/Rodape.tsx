@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { config } from '../config';
 import { linkWhatsApp } from '../lib/whatsapp';
+import { registrarEvento } from '../lib/analytics';
 import { CATEGORIAS } from '../types';
 import { Marca } from './Cabecalho';
 import {
@@ -68,6 +69,7 @@ export default function Rodape() {
             <li>
               <a
                 href={linkWhatsApp('Olá! Gostaria de mais informações sobre os móveis.')}
+                onClick={() => registrarEvento('contato_whatsapp', { origem: 'rodape' })}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 hover:text-white"

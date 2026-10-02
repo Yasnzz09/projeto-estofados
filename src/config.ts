@@ -4,6 +4,11 @@ export const config = {
   whatsappNumero: '5511999999999',
   /** Folga (em cm) somada a cada medida do produto ao verificar se ele cabe. */
   folgaCm: 2,
+  /**
+   * Medição de cliques (Google Analytics 4). Cole aqui o "ID da métrica" (começa com G-).
+   * Vazio = medição desligada.
+   */
+  googleAnalyticsId: '',
 
   /** Rodapé. Troque pelos dados reais da loja. */
   slogan: 'Móveis e estofados para viver bem em casa.',

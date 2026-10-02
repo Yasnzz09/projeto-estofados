@@ -16,6 +16,7 @@ import {
 } from '../lib/encaixe';
 import { produtos } from '../lib/produtos';
 import { linkWhatsApp } from '../lib/whatsapp';
+import { registrarEvento } from '../lib/analytics';
 import { CATEGORIAS, type Categoria, type Produto } from '../types';
 
 const ehCategoria = (v: string | null): v is Categoria => CATEGORIAS.includes(v as Categoria);
@@ -98,6 +99,7 @@ export default function Catalogo() {
           </p>
           <a
             href={linkWhatsApp('Olá! Procuro um móvel para um espaço específico. Podem me ajudar?')}
+            onClick={() => registrarEvento('contato_whatsapp', { origem: 'catalogo' })}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-whatsapp mt-5"

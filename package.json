@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "dev": "node scripts/gerar-acabamentos.mjs && vite",
+    "build": "node scripts/gerar-acabamentos.mjs && tsc --noEmit && vite build",
     "preview": "vite preview",
     "modelos": "powershell -ExecutionPolicy Bypass -File scripts/gerar-placeholders.ps1"
   },

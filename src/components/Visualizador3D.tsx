@@ -1,6 +1,9 @@
 import '@google/model-viewer';
 import { useEffect, useRef, useState } from 'react';
+import { registrarEvento } from '../lib/analytics';
+import { enderecoComAR, faixaQuickLook, modeloDoAcabamento } from '../lib/ar';
 import { isAndroid } from '../lib/plataforma';
+import { linkOrcamento } from '../lib/whatsapp';
 import {
   REPETICAO_TEXTURA_FOTO,
   REPETICAO_TEXTURA_GERADA,
@@ -26,6 +29,10 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
   const mvRef = useRef<ModelViewerElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [carregado, setCarregado] = useState(false);
+  // Muda a cada modelo carregado (ao trocar de tecido o arquivo 3D também muda).
+  const [versaoModelo, setVersaoModelo] = useState(0);
+  const acabamentoRef = useRef(acabamento);
+  acabamentoRef.current = acabamento;
 
   // Troca de tecido: aplica cor, rugosidade e textura só nos materiais de tecido do .glb.
   useEffect(() => {
@@ -66,9 +73,10 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
     return () => {
       cancelado = true;
     };
-  }, [carregado, acabamento]);
+  }, [carregado, acabamento, versaoModelo]);
   const [mostrarMedidas, setMostrarMedidas] = useState(false);
   const [avisoAR, setAvisoAR] = useState(false);
+  const [mostrarDica, setMostrarDica] = useState(false);
   const { largura, altura, profundidade } = produto.medidas;
 
   useEffect(() => {
@@ -117,6 +125,7 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
         mv.updateHotspot({ name, position: p.join(' ') });
       }
       setCarregado(true);
+      setVersaoModelo((v) => v + 1);
       requestAnimationFrame(desenharLinhas);
     };
 
@@ -130,13 +139,22 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
 
     mv.addEventListener('load', aoCarregar);
     mv.addEventListener('camera-change', desenharLinhas);
+    // iPhone: botão "Pedir orçamento" na faixa de baixo do Quick Look.
+    const aoTocarBotaoQuickLook = () => {
+      const tecido = acabamentoRef.current;
+      registrarEvento('pedir_orcamento', { produto: produto.id, acabamento: tecido?.id, origem: 'ar' });
+      window.location.href = linkOrcamento(produto, tecido);
+    };
+
     mv.addEventListener('ar-status', aoMudarAR);
+    mv.addEventListener('quick-look-button-tapped', aoTocarBotaoQuickLook);
     window.addEventListener('resize', desenharLinhas);
     if (mv.loaded) aoCarregar();
     return () => {
       mv.removeEventListener('load', aoCarregar);
       mv.removeEventListener('camera-change', desenharLinhas);
       mv.removeEventListener('ar-status', aoMudarAR);
+      mv.removeEventListener('quick-look-button-tapped', aoTocarBotaoQuickLook);
       window.removeEventListener('resize', desenharLinhas);
     };
   }, [produto.modeloGlb]);
@@ -146,11 +164,20 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
   };
 
   // Mesmo fluxo para todos: iPhone abre o Quick Look e Android abre o Scene Viewer (AR do Google).
+  const abrirCamera = () => {
+    setMostrarDica(false);
+    marcarDicaVista();
+    mvRef.current?.activateAR();
+  };
+
   const abrirAR = () => {
     const mv = mvRef.current;
+    registrarEvento('ver_na_casa', { produto: produto.id, acabamento: acabamento?.id });
     if (mv?.canActivateAR) {
       setAvisoAR(false);
-      mv.activateAR();
+      // Na primeira vez, uma dica rápida de como usar; depois abre direto.
+      if (dicaJaVista()) mv.activateAR();
+      else setMostrarDica(true);
     } else {
       setAvisoAR(true);
     }
@@ -161,8 +188,8 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
       <div className="estudio relative h-[58vh] max-h-[580px] min-h-[340px] overflow-hidden rounded-3xl ring-1 ring-areia-200">
         <model-viewer
           ref={mvRef}
-          src={produto.modeloGlb}
-          ios-src={produto.modeloUsdz || undefined}
+          src={enderecoComAR(modeloDoAcabamento(produto, acabamento), produto, acabamento)}
+          ios-src={produto.modeloUsdz ? produto.modeloUsdz + faixaQuickLook(produto, acabamento) : undefined}
           alt={`Modelo 3D de ${produto.nome}`}
           camera-controls
           camera-orbit="30deg 75deg auto"
@@ -251,6 +278,88 @@ export default function Visualizador3D({ produto, acabamento }: { produto: Produ
             aparece no chão, em tamanho real.
           </p>
         ))}
+
+      {mostrarDica && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dica-ar-titulo"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-3 sm:items-center"
+          onClick={() => setMostrarDica(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <IlustracaoDica />
+            <h2 id="dica-ar-titulo" className="mt-4 text-xl font-bold">
+              Veja o {produto.nome} na sua casa
+            </h2>
+            <ol className="mt-4 space-y-2 text-left text-sm text-grafite-700">
+              <li className="flex gap-3">
+                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-areia-100 text-xs font-bold">1</span>
+                Aponte a câmera para o chão, onde quer o móvel.
+              </li>
+              <li className="flex gap-3">
+                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-areia-100 text-xs font-bold">2</span>
+                Mova o celular devagar, de um lado para o outro, até o móvel aparecer.
+              </li>
+              <li className="flex gap-3">
+                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-areia-100 text-xs font-bold">3</span>
+                Arraste com o dedo para posicionar. Ele aparece em tamanho real.
+              </li>
+            </ol>
+            <button type="button" onClick={abrirCamera} className="btn-primario mt-6 w-full">
+              <IconeCubo /> Abrir a câmera
+            </button>
+            <button
+              type="button"
+              onClick={() => setMostrarDica(false)}
+              className="mt-2 min-h-11 w-full text-sm font-semibold text-grafite-500"
+            >
+              Agora não
+            </button>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+const CHAVE_DICA = 'dica-ar-vista';
+
+function dicaJaVista(): boolean {
+  try {
+    return localStorage.getItem(CHAVE_DICA) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function marcarDicaVista() {
+  try {
+    localStorage.setItem(CHAVE_DICA, '1');
+  } catch {
+    // sem storage (aba anônima etc.): a dica só aparece de novo
+  }
+}
+
+/** Celular apontado para o chão, com um móvel aparecendo. */
+function IlustracaoDica() {
+  return (
+    <svg viewBox="0 0 160 96" className="mx-auto h-24 w-40" aria-hidden="true">
+      <ellipse cx="80" cy="82" rx="62" ry="10" fill="#efe7da" />
+      <rect x="52" y="52" width="56" height="20" rx="5" fill="#d8c3a5" />
+      <rect x="56" y="40" width="48" height="16" rx="5" fill="#e6d5bd" />
+      <rect x="46" y="48" width="10" height="24" rx="4" fill="#cdb593" />
+      <rect x="104" y="48" width="10" height="24" rx="4" fill="#cdb593" />
+      <g transform="rotate(-14 118 30)">
+        <rect x="104" y="6" width="28" height="48" rx="6" fill="#232221" />
+        <rect x="107" y="11" width="22" height="38" rx="3" fill="#f6f1ea" />
+        <rect x="111" y="30" width="14" height="6" rx="2" fill="#d8c3a5" />
+      </g>
+      <path d="M40 22c6-6 14-6 20 0" stroke="#b0916a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <path d="M100 22c-6-6-14-6-20 0" stroke="#b0916a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+    </svg>
   );
 }

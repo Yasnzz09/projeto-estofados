@@ -96,7 +96,7 @@ export default function FormularioEncaixe({ produto, acabamento }: { produto: Pr
                 O {produto.nome} cabe no seu espaço, já contando {config.folgaCm} cm de folga.
               </p>
               <NaoVerificadas dimensoes={resultado.naoVerificadas} />
-              <BotaoWhatsApp produto={produto} acabamento={acabamento} className="mt-4" />
+              <BotaoWhatsApp produto={produto} acabamento={acabamento} origem="formulario" className="mt-4" />
             </div>
           ) : (
             <div className="rounded-3xl border-2 border-red-600 bg-red-50 p-5 text-red-900">

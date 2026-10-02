@@ -4,6 +4,7 @@ import { IconeCamera, IconeChat, IconeCubo, IconeSetaDireita } from '../componen
 import Revelar from '../components/Revelar';
 import { produtos } from '../lib/produtos';
 import { linkWhatsApp } from '../lib/whatsapp';
+import { registrarEvento } from '../lib/analytics';
 import { CATEGORIAS } from '../types';
 
 const DIFERENCIAIS = [
@@ -160,6 +161,7 @@ export default function Home() {
           </p>
           <a
             href={linkWhatsApp('Olá! Procuro um móvel para um espaço específico. Podem me ajudar?')}
+            onClick={() => registrarEvento('contato_whatsapp', { origem: 'home' })}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-whatsapp relative mt-7"

@@ -4,6 +4,7 @@ import Cabecalho from './components/Cabecalho';
 import Rodape from './components/Rodape';
 import Catalogo from './pages/Catalogo';
 import Home from './pages/Home';
+import Orcamento from './pages/Orcamento';
 
 // A página do produto carrega o model-viewer (three.js), então só é baixada quando aberta.
 const PaginaProduto = lazy(() => import('./pages/PaginaProduto'));
@@ -33,6 +34,7 @@ export default function App() {
               </Suspense>
             }
           />
+          <Route path="/orcamento/:id" element={<Orcamento />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </div>
