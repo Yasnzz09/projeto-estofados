@@ -53,8 +53,8 @@ function brilho(tipo: TipoTecido, x: number, y: number): number {
       // fios em laçadas: "bolinhas" irregulares bem marcadas sobre um fundo macio
       const lacada = ruidoSuave(x, y, 64, 23);
       const miuda = ruidoSuave(x, y, 128, 29);
-      const relevo = lacada > 0.5 ? 1 : 0.86 + 0.28 * lacada;
-      return (0.8 + 0.12 * miuda + 0.06 * ruidoSuave(x, y, 8, 31)) * relevo;
+      const relevo = lacada > 0.5 ? 1 : 0.92 + 0.16 * lacada;
+      return (0.85 + 0.1 * miuda + 0.025 * ruidoSuave(x, y, 8, 31)) * relevo;
     }
     case 'Linho': {
       // fios horizontais e verticais com espessura irregular (slub) + trançado

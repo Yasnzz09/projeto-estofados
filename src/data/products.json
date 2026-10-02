@@ -67,8 +67,8 @@
       "profundidade": 100
     },
     "fotos": [
-      "/fotos/sofa-lisboa-1.svg",
-      "/fotos/sofa-lisboa-2.svg"
+      "/fotos/sofa-lisboa-1.jpg",
+      "/fotos/sofa-lisboa-2.jpg"
     ],
     "modeloGlb": "/modelos/sofa-lisboa.glb",
     "modeloUsdz": "",
@@ -140,8 +140,8 @@
       "profundidade": 88
     },
     "fotos": [
-      "/fotos/sofa-oslo-1.svg",
-      "/fotos/sofa-oslo-2.svg"
+      "/fotos/sofa-oslo-1.jpg",
+      "/fotos/sofa-oslo-2.jpg"
     ],
     "modeloGlb": "/modelos/sofa-oslo.glb",
     "modeloUsdz": "",
@@ -207,8 +207,8 @@
       "profundidade": 84
     },
     "fotos": [
-      "/fotos/poltrona-aurora-1.svg",
-      "/fotos/poltrona-aurora-2.svg"
+      "/fotos/poltrona-aurora-1.jpg",
+      "/fotos/poltrona-aurora-2.jpg"
     ],
     "modeloGlb": "/modelos/poltrona-aurora.glb",
     "modeloUsdz": "",
@@ -271,8 +271,8 @@
       "profundidade": 72
     },
     "fotos": [
-      "/fotos/poltrona-lina-1.svg",
-      "/fotos/poltrona-lina-2.svg"
+      "/fotos/poltrona-lina-1.jpg",
+      "/fotos/poltrona-lina-2.jpg"
     ],
     "modeloGlb": "/modelos/poltrona-lina.glb",
     "modeloUsdz": "",
@@ -337,8 +337,8 @@
       "profundidade": 73
     },
     "fotos": [
-      "/fotos/geladeira-duplex-1.svg",
-      "/fotos/geladeira-duplex-2.svg"
+      "/fotos/geladeira-duplex-1.jpg",
+      "/fotos/geladeira-duplex-2.jpg"
     ],
     "modeloGlb": "/modelos/geladeira-duplex.glb",
     "modeloUsdz": ""
@@ -355,8 +355,8 @@
       "profundidade": 66
     },
     "fotos": [
-      "/fotos/fogao-5-bocas-1.svg",
-      "/fotos/fogao-5-bocas-2.svg"
+      "/fotos/fogao-5-bocas-1.jpg",
+      "/fotos/fogao-5-bocas-2.jpg"
     ],
     "modeloGlb": "/modelos/fogao-5-bocas.glb",
     "modeloUsdz": ""

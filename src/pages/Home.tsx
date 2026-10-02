@@ -25,7 +25,7 @@ const DIFERENCIAIS = [
   },
 ];
 
-const destaques = ['sofa-lisboa', 'poltrona-aurora', 'sofa-oslo']
+const destaques = ['sofa-dublin', 'poltrona-aurora', 'sofa-lisboa']
   .map((id) => produtos.find((p) => p.id === id))
   .filter((p) => p !== undefined);
 
@@ -116,7 +116,7 @@ export default function Home() {
                       src={capa}
                       alt=""
                       loading="lazy"
-                      className="size-full object-cover transition duration-700 ease-out group-hover:scale-[1.07]"
+                      className="size-full object-contain p-2 pb-16 transition duration-700 ease-out group-hover:scale-[1.07]"
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-grafite-900/75 via-grafite-900/10 to-transparent" />
@@ -174,25 +174,24 @@ export default function Home() {
   );
 }
 
-/** Ilustração do banner: celular mostrando o sofá "na sala", com cota e seletor de tecido. */
+/** Banner: celular mostrando o Sofá Dublin "na sala" (render do modelo 3D), com cota e seletor de tecido. */
 function MockupCelular() {
-  const amostras = ['#cbb79a', '#4e5a36', '#1f4f5c', '#a8743f', '#7b3f1d'];
+  const amostras = ['#e9e2d6', '#d6c6ac', '#bdb8b0', '#b98a5e', '#7f7b55', '#5c5954'];
   return (
     <div className="relative mx-auto w-full max-w-[19rem] motion-safe:animate-entrada [animation-delay:150ms] sm:max-w-sm">
       <div className="relative aspect-[9/17] overflow-hidden rounded-[2.6rem] border-[10px] border-grafite-900 bg-areia-100 shadow-elevada">
-        {/* "parede" e "chão" */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#efe7da] via-[#eadfce] to-[#d9c6a8]" />
-        <div className="absolute inset-x-0 bottom-0 h-[42%] bg-[repeating-linear-gradient(90deg,#cfb894_0_46px,#c8b08a_46px_48px)] opacity-80" />
         <img
-          src="/fotos/sofa-lisboa-1.svg"
-          alt="Sofá Lisboa visto pela câmera do celular"
-          className="absolute inset-x-0 top-[30%] w-full mix-blend-multiply"
+          src="/fotos/hero-ar.jpg"
+          alt="Sofá Cama Dublin visto pela câmera do celular, em tamanho real na sala"
+          className="absolute inset-0 size-full object-cover"
         />
-        {/* cota */}
-        <div className="absolute inset-x-[12%] top-[71%] flex items-center">
+        {/* cota: largura medida na frente do sofá */}
+        <div className="absolute left-[7%] right-[10%] top-[67%] flex items-center">
+          <span className="h-3 border-l-2 border-grafite-900/70" />
           <span className="h-px flex-1 border-t-2 border-dashed border-grafite-900/70" />
-          <span className="mx-2 rounded-full bg-white px-2.5 py-1 text-xs font-bold shadow">L 210 cm</span>
+          <span className="mx-2 rounded-full bg-white px-2.5 py-1 text-xs font-bold shadow">L 190 cm</span>
           <span className="h-px flex-1 border-t-2 border-dashed border-grafite-900/70" />
+          <span className="h-3 border-l-2 border-grafite-900/70" />
         </div>
         <div className="absolute inset-x-0 top-0 flex justify-center pt-2">
           <span className="h-5 w-24 rounded-full bg-grafite-900" />
@@ -209,12 +208,12 @@ function MockupCelular() {
           {amostras.map((cor, i) => (
             <span
               key={cor}
-              className={`size-6 rounded-full ring-black/10 ${i === 1 ? 'ring-2 ring-grafite-900 ring-offset-2' : 'ring-1'}`}
+              className={`size-5 rounded-full ring-black/10 ${i === 0 ? 'ring-2 ring-grafite-900 ring-offset-2' : 'ring-1'}`}
               style={{ backgroundColor: cor }}
             />
           ))}
         </div>
-        <p className="mt-2 text-xs font-semibold">Veludo Verde Musgo</p>
+        <p className="mt-2 text-xs font-semibold">Bouclé Off-White</p>
       </div>
     </div>
   );
